@@ -1,0 +1,27 @@
+{% extends "website_app/base.html" %}
+{% block content %}
+
+<article class="blog-post">
+  <header class="post-header">
+    <h2 class="post-title">{{ post.title }}</h2>
+    <div class="post-meta">
+      <time datetime="{{ post.date_added|date:'Y-m-d' }}">{{ post.date_added|date:"F j, Y" }}</time>
+      {% if post.categories %}
+      <div class="post-categories">
+        {% for category in post.categories.all %}
+          <span class="category">{{ category.name }}</span>{% if not forloop.last %}, {% endif %}
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
+  </header>
+  
+  <div class="post-content">
+    {{ post.content|safe }}
+  </div>
+  
+  <footer class="post-footer">
+  </footer>
+</article>
+
+{% endblock content %}

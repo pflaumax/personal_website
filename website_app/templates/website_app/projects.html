@@ -1,0 +1,50 @@
+{% extends "website_app/base.html" %}
+{% block content %}
+
+<section class="projects-section">
+  <h2 class="section-title">Public Projects</h2>
+  
+  <div class="projects-grid">
+    <article class="project-card">
+      <h3 class="project-title">
+        <a href="https://github.com/pflaumax/pflaumax_website" target="_blank" rel="noopener noreferrer">My Personal Website</a>
+      </h3>
+      <p class="project-description">My personal website, built with Django and Python, features a Tools page with a to-do list and Pomodoro timer (HTML/CSS/JS). It also includes a blog platform for personal posts and implements a fully responsive design for optimal viewing across all devices.</p>
+      <div class="project-tech">
+        <span class="tech-badge">Python</span>
+        <span class="tech-badge">Django</span>
+        <span class="tech-badge">Git</span>
+        <span class="tech-badge">HTML/CSS</span>
+        <span class="tech-badge">JavaScript</span>
+      </div>
+    </article>
+    
+    <article class="project-card">
+      <h3 class="project-title">
+        <a href="https://github.com/pflaumax" target="_blank" rel="noopener noreferrer">ESP32 Dashboard</a>
+      </h3>
+      <p class="project-description">A dashboard powered by the ESP32 Wroom and an E-paper display, showing the current date and time, weather conditions, views of my personal website, and blocked queries from my Pi-hole on a Raspberry Pi.</p>
+      <div class="project-tech">
+        <span class="tech-badge">MicroPython</span>
+        <span class="tech-badge">REST API</span>
+        <span class="tech-badge">Raspberry Pi</span>
+        <span class="tech-badge">ESP32</span>
+        <span class="tech-badge">Git</span>
+      </div>
+    </article>
+
+    <article class="project-card">
+      <h3 class="project-title">
+        <a href="https://github.com/pflaumax" target="_blank" rel="noopener noreferrer">Web Project Teaser</a>
+      </h3>
+      <p class="project-description">A personal project I'm currently working on, called Wimly - coming soon!</p>
+      <div class="project-tech">
+        <span class="tech-badge">Stay tuned</span>
+      </div>
+    </article>
+
+    
+  </div>
+</section>
+
+{% endblock content %}

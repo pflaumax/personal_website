@@ -1,0 +1,26 @@
+{% extends "website_app/base.html" %}
+{% block content %}
+
+<section class="blog-section">
+  <h2 class="section-title">Posts</h2>
+  
+  <div class="blog-list">
+    {% for item in blog %}
+    <article class="blog-card">
+      <h3 class="blog-title">
+        <a href="{% url 'website_app:post' item.slug %}">{{ item.title }}</a>
+      </h3>
+      <div class="blog-meta">
+        <time datetime="{{ item.date_added|date:'Y-m-d' }}" class="blog-date">{{ item.date_added|date:"F j, Y" }}</time>
+      </div>
+      {% if item.excerpt %}
+        <p class="blog-excerpt">{{ item.excerpt }}</p>
+      {% endif %}
+    </article>
+    {% empty %}
+      <div class="no-posts">No posts have been added yet.</div>
+    {% endfor %}
+  </div>
+</section>
+
+{% endblock content %}

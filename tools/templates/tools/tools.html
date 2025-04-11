@@ -1,0 +1,72 @@
+{% extends "website_app/base.html" %}
+{% load static %}
+{% block content %}
+<section class="tools-section">
+  <h2 class="section-title">Productivity Tools</h2>
+  
+  <div class="tools-grid">
+    <!-- Todo List Tool -->
+    <article class="tool-card">
+      <h3 class="tool-title">Todo List</h3>
+      <p class="tool-description">
+        Your list refreshes when you close the tab. Pay attention to what matters now!</p>
+      <div class="tool-content">
+        <form id="task-form" class="task-form" aria-label="Task entry form">
+          <div class="task-input-group">
+            <input type="text" id="task-input" class="task-input" placeholder="Enter task" aria-label="Task description" required>
+            <button type="submit" id="add-task" class="task-button">Add Task</button>
+          </div>
+        </form>
+        
+        <div class="task-container">
+          <ul id="task-list" class="task-list" aria-label="Tasks list"></ul>
+          <div id="task-empty-state" class="task-empty-state">
+            <p>No tasks yet. Add one above!</p>
+          </div>
+          <div class="task-actions">
+            <button id="clear-completed" class="task-action-button">Clear Completed</button>
+          </div>
+        </div>
+      </div>
+    </article>
+    
+    <!-- Pomodoro Timer Tool -->
+    <article class="tool-card">
+      <h3 class="tool-title">Pomodoro Timer</h3>
+      <p class="tool-description">
+        Stay focused! Your Pomodoro session resets when you leave or reload.</p>
+      <div class="tool-content">
+        <div class="timer-display">
+          <p id="timer" class="timer-text">25:00</p>
+          <p id="timer-status" class="timer-status">Ready to focus</p>
+        </div>
+        
+        <div class="timer-controls">
+          <button id="start-timer" class="timer-button primary">Start</button>
+          <button id="pause-timer" class="timer-button" disabled>Pause</button>
+          <button id="reset-timer" class="timer-button">Reset</button>
+        </div>
+        
+        <div class="timer-options">
+          <button id="pomodoro" class="timer-option active" data-time="25">Pomodoro</button>
+          <button id="short-break" class="timer-option" data-time="5">Short Break</button>
+          <button id="long-break" class="timer-option" data-time="15">Long Break</button>
+        </div>
+        
+        <div class="timer-settings">
+          <div class="settings-row">
+            <label for="sound-toggle" class="settings-label">Sound Notifications</label>
+            <input type="checkbox" id="sound-toggle" class="settings-toggle" checked>
+          </div>
+          <div class="settings-row">
+            <label for="auto-start-breaks" class="settings-label">Auto-start Breaks</label>
+            <input type="checkbox" id="auto-start-breaks" class="settings-toggle" checked>
+          </div>
+        </div>
+      </div>
+    </article>
+  </div>
+</section>
+
+<script src="{% static 'website_app/js/tools.js' %}"></script>
+{% endblock content %}

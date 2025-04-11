@@ -1,0 +1,10 @@
+{% extends 'website_app/base.html' %}
+
+{% block content %}
+<div class="error-page">
+  <h1>Welcome to 404 | Page not found</h1>
+  <p>↩return to <a href="{% url 'website_app:home' %}">pflaumax.dev</a></p>
+  <br>
+  <p>If you'd like to flag this broken link, please <a href="{% url 'website_app:contact' %}">contact me</a>.</p>
+</div>
+{% endblock %}
