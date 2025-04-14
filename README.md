@@ -1,8 +1,8 @@
-# Source Code for Website
+# Source Code for Personal Website
 
 ## Overview
 
-This personal website is built with **Python/Django** for the backend and a custom-designed front-end using **HTML**, **CSS**, and **JavaScript**. It features a personal blog with custom posts and a tools page that includes productivity applications such as a **Todo List** and a **Pomodoro Timer**.
+This website is built with **Python/Django** for the backend and a custom-designed front-end using **HTML**, **CSS**, and **JavaScript**. It features a personal blog with custom posts and a tools page that includes productivity applications such as a **Todo List** and a **Pomodoro Timer**.
 
 
 ## Features
