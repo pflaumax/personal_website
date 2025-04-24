@@ -23,10 +23,7 @@ db.sqlite3-journal
 media/
 
 # Collected static files
-staticfiles/admin
-staticfiles/django_tinymce
-staticfiles/rest_framework
-staticfiles/tinymce
+staticfiles/
 
 # Secrets
 .env
