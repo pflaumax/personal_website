@@ -8,4 +8,4 @@ pillow==11.1.0
 python-dotenv==1.1.0
 six==1.17.0
 sqlparse==0.5.3
-gunicorn==21.2.0 
+whitenoise==6.9.0
