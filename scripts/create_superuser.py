@@ -31,7 +31,7 @@ def create_superuser():
 
     try:
         if not User.objects.filter(username=USERNAME).exists():
-            User.objects.create_superuser(USERNAME, EMAIL, PASSWORD)
+            User.objects.create_superuser(USERNAME, EMAIL, PASSWORD)  # type: ignore
             print(f"Superuser '{USERNAME}' created successfully!")
         else:
             print(f"Superuser '{USERNAME}' already exists.")
