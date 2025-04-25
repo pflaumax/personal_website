@@ -75,7 +75,7 @@ if os.environ.get("DATABASE_URL"):
     # Use PostgreSQL in production
     DATABASES = {
         "default": dj_database_url.config(
-            default=os.environ.get("DATABASE_URL"),
+            default=os.environ.get("DATABASE_URL", "YOUR_NEON_DATABASE_URI"),
             conn_max_age=600,
             ssl_require=True,  # Required for Neon
         )
@@ -176,7 +176,7 @@ if USE_S3:
     AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
     # S3 Bucket Settings
     AWS_STORAGE_BUCKET_NAME = os.getenv("AWS_STORAGE_BUCKET_NAME")
-    AWS_S3_REGION_NAME = os.getenv("AWS_S3_REGION_NAME")  # Наприклад, 'eu-central-1'
+    AWS_S3_REGION_NAME = os.getenv("AWS_S3_REGION_NAME")
     AWS_S3_CUSTOM_DOMAIN = (
         f"{AWS_STORAGE_BUCKET_NAME}.s3.{AWS_S3_REGION_NAME}.amazonaws.com"
     )

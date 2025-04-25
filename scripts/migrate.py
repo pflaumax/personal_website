@@ -20,5 +20,18 @@ def run_migrations():
         sys.exit(1)
 
 
+def load_data():
+    print("Loading data from post_media_data.json...")
+    try:
+        subprocess.check_call(
+            [sys.executable, "manage.py", "loaddata", "post_media_data.json"]
+        )
+        print("Data loaded successfully!")
+    except subprocess.CalledProcessError as e:
+        print(f"Error loading data: {e}")
+        sys.exit(1)
+
+
 if __name__ == "__main__":
     run_migrations()
+    load_data()  # Add this to run after migrations
