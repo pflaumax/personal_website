@@ -1,7 +1,9 @@
-#!/usr/bin/env python
 import os
 import subprocess
 import sys
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 def run_migrations():

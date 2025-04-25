@@ -74,12 +74,8 @@ coverage.xml
 *.cover
 .hypothesis/
 .pytest_cache/
-create_superuser.py
 
 # Translations
 *.mo
 *.pot
-
-# Jupyter Notebook
-.ipynb_checkpointscreate_superuser.py
 
