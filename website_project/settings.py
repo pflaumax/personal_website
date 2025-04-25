@@ -184,7 +184,7 @@ if USE_S3:
         "CacheControl": "max-age=86400",  # Cash files for 1 day
     }
     AWS_DEFAULT_ACL = "public-read"
-    AWS_LOCATION = "media"  # Subfolder
+    AWS_LOCATION = "media/media_files"  # Subfolder
 
     # Media Files Storage
     DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
