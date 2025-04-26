@@ -3,6 +3,10 @@ from django.utils.text import slugify
 from django.contrib.auth.models import User
 from tinymce.models import HTMLField
 
+from django.core.files.storage import default_storage  # test
+
+print(f"Default storage engine: {default_storage.__class__.__name__}")
+
 
 class MediaFile(models.Model):
     """Model for storing various media files"""
@@ -34,6 +38,9 @@ class MediaFile(models.Model):
         print(f"Current DEFAULT_FILE_STORAGE: {settings.DEFAULT_FILE_STORAGE}")
         print(f"USE_S3 setting: {getattr(settings, 'USE_S3', 'Not defined')}")
         print(f"File field before save: {self.file}")
+        print(
+            f"Storage class for model: {self._meta.get_field('file').storage.__class__.__name__}"
+        )
 
         try:
             super().save(*args, **kwargs)

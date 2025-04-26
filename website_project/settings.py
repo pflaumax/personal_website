@@ -172,22 +172,20 @@ USE_S3 = os.getenv("USE_S3", "False").upper() == "TRUE"
 
 if USE_S3:
     # AWS Credentials
+    DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
     AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID")
     AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
-    # S3 Bucket Settings
     AWS_STORAGE_BUCKET_NAME = os.getenv("AWS_STORAGE_BUCKET_NAME")
     AWS_S3_REGION_NAME = os.getenv("AWS_S3_REGION_NAME")
-    AWS_S3_CUSTOM_DOMAIN = (
-        f"{AWS_STORAGE_BUCKET_NAME}.s3.{AWS_S3_REGION_NAME}.amazonaws.com"
-    )
+    AWS_DEFAULT_ACL = "public-read"
+    AWS_LOCATION = "media"  # Subfolder
     AWS_S3_OBJECT_PARAMETERS = {
         "CacheControl": "max-age=86400",  # Cash files for 1 day
     }
-    AWS_DEFAULT_ACL = "public-read"
-    AWS_LOCATION = "media/media_files"  # Subfolder
+    AWS_S3_CUSTOM_DOMAIN = (
+        f"{AWS_STORAGE_BUCKET_NAME}.s3.{AWS_S3_REGION_NAME}.amazonaws.com"
+    )
 
-    # Media Files Storage
-    DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
     MEDIA_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/{AWS_LOCATION}/"
     MEDIA_ROOT = os.path.join(BASE_DIR, "media")
     # Static Files Storage (Optional feature S3)
