@@ -29,35 +29,32 @@ class MediaFile(models.Model):
 
     def save(self, *args, **kwargs):
         from django.conf import settings
-        import logging
 
-        logger = logging.getLogger(__name__)
-
-        # Log before save
-        logger.info("--- Attempting to save MediaFile ---")
-        logger.info(f"Current DEFAULT_FILE_STORAGE: {settings.DEFAULT_FILE_STORAGE}")
-        logger.info(f"USE_S3 setting: {getattr(settings, 'USE_S3', 'Not defined')}")
-        logger.info(f"File field before save: {self.file}")
+        print("\n--- Attempting to save MediaFile ---")
+        print(f"Current DEFAULT_FILE_STORAGE: {settings.DEFAULT_FILE_STORAGE}")
+        print(f"USE_S3 setting: {getattr(settings, 'USE_S3', 'Not defined')}")
+        print(f"File field before save: {self.file}")
 
         try:
             super().save(*args, **kwargs)
-            logger.info(f"File successfully saved")
+            print(f"File successfully saved")
         except Exception as e:
-            logger.error(f"Error saving file: {str(e)}")
-            logger.exception("Exception details:")
-            raise  # Re-raise exception after logging
+            print(f"Error saving file: {str(e)}")
+            import traceback
 
-        # Log after save
-        logger.info(f"File field after save: {self.file}")
+            print(traceback.format_exc())
+            raise
+
+        print(f"File field after save: {self.file}")
         try:
             if self.file:
-                logger.info(f"Generated URL: {self.file.url}")
-                logger.info(f"File storage: {self.file.storage}")
-                logger.info(f"File name: {self.file.name}")
+                print(f"Generated URL: {self.file.url}")
+                print(f"File storage: {self.file.storage.__class__.__name__}")
+                print(f"File name: {self.file.name}")
         except Exception as e:
-            logger.error(f"Error getting file details: {str(e)}")
+            print(f"Error getting file details: {str(e)}")
 
-        logger.info("--- Finished saving MediaFile ---")
+        print("--- Finished saving MediaFile ---\n")
 
 
 class Post(models.Model):
