@@ -21,7 +21,7 @@ class MediaFile(models.Model):
     file_type = models.CharField(
         max_length=10, choices=MEDIA_TYPE_CHOICES, default="image"
     )
-    file = models.FileField(upload_to="media_files/")
+    file = models.FileField(upload_to="media_files/", storage=default_storage)
     uploaded_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
