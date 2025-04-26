@@ -2,6 +2,17 @@ from django.db import models
 from django.utils.text import slugify
 from django.contrib.auth.models import User
 from tinymce.models import HTMLField
+from django.core.files.storage import default_storage
+from django.conf import settings
+from storages.backends.s3boto3 import S3Boto3Storage
+import os
+
+
+class S3FileField(models.FileField):
+    def __init__(self, *args, **kwargs):
+        if getattr(settings, "USE_S3", False):
+            kwargs["storage"] = S3Boto3Storage()
+        super().__init__(*args, **kwargs)
 
 
 class MediaFile(models.Model):
@@ -17,7 +28,8 @@ class MediaFile(models.Model):
     file_type = models.CharField(
         max_length=10, choices=MEDIA_TYPE_CHOICES, default="image"
     )
-    file = models.FileField(upload_to="media_files/")
+    # Use our custom S3FileField instead of models.FileField
+    file = S3FileField(upload_to="media_files/")
     uploaded_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
