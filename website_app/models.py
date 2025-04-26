@@ -13,7 +13,6 @@ class MediaFile(models.Model):
         ("video", "Video"),
         ("document", "Document"),
     )
-
     title = models.CharField(max_length=200)
     file_type = models.CharField(
         max_length=10, choices=MEDIA_TYPE_CHOICES, default="image"
@@ -22,11 +21,43 @@ class MediaFile(models.Model):
     uploaded_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.title} ({self.get_file_type_display()})"  # type: ignore
+        return f"{self.title} ({self.get_file_type_display()})"
 
     @property
     def file_url(self):
         return self.file.url
+
+    def save(self, *args, **kwargs):
+        from django.conf import settings
+        import logging
+
+        logger = logging.getLogger(__name__)
+
+        # Log before save
+        logger.info("--- Attempting to save MediaFile ---")
+        logger.info(f"Current DEFAULT_FILE_STORAGE: {settings.DEFAULT_FILE_STORAGE}")
+        logger.info(f"USE_S3 setting: {getattr(settings, 'USE_S3', 'Not defined')}")
+        logger.info(f"File field before save: {self.file}")
+
+        try:
+            super().save(*args, **kwargs)
+            logger.info(f"File successfully saved")
+        except Exception as e:
+            logger.error(f"Error saving file: {str(e)}")
+            logger.exception("Exception details:")
+            raise  # Re-raise exception after logging
+
+        # Log after save
+        logger.info(f"File field after save: {self.file}")
+        try:
+            if self.file:
+                logger.info(f"Generated URL: {self.file.url}")
+                logger.info(f"File storage: {self.file.storage}")
+                logger.info(f"File name: {self.file.name}")
+        except Exception as e:
+            logger.error(f"Error getting file details: {str(e)}")
+
+        logger.info("--- Finished saving MediaFile ---")
 
 
 class Post(models.Model):

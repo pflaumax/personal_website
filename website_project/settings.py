@@ -168,7 +168,7 @@ MEDIA_URL = "/media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
 # AWS S3 Storage Settings
-USE_S3 = os.getenv("USE_S3") == "TRUE"  # Variable for easy swap
+USE_S3 = os.getenv("USE_S3", "False").upper() == "TRUE"
 
 if USE_S3:
     # AWS Credentials
