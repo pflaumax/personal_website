@@ -28,7 +28,9 @@ if USE_S3:
     AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
     AWS_STORAGE_BUCKET_NAME = os.getenv("AWS_STORAGE_BUCKET_NAME")
     AWS_S3_REGION_NAME = os.getenv("AWS_S3_REGION_NAME")
-    AWS_DEFAULT_ACL = "public-read"
+    # AWS_DEFAULT_ACL = "public-read"
+    AWS_DEFAULT_ACL = None  # Don't set ACLs at all
+    AWS_S3_FILE_OVERWRITE = False  # Don't overwrite files with same name
     AWS_LOCATION = "media"  # Subfolder
     AWS_S3_OBJECT_PARAMETERS = {
         "CacheControl": "max-age=86400",  # Cash files for 1 day

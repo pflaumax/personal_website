@@ -2,12 +2,6 @@ from django.db import models
 from django.utils.text import slugify
 from django.contrib.auth.models import User
 from tinymce.models import HTMLField
-from django.conf import settings
-from storages.backends.s3boto3 import S3Boto3Storage
-
-
-# Define storage explicitly for this model
-s3_storage = S3Boto3Storage() if getattr(settings, "USE_S3", False) else None
 
 
 class MediaFile(models.Model):
@@ -23,7 +17,7 @@ class MediaFile(models.Model):
     file_type = models.CharField(
         max_length=10, choices=MEDIA_TYPE_CHOICES, default="image"
     )
-    file = models.FileField(upload_to="media_files/", storage=s3_storage)
+    file = models.FileField(upload_to="media_files/")
     uploaded_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -35,33 +29,12 @@ class MediaFile(models.Model):
 
     def save(self, *args, **kwargs):
         from django.conf import settings
-        from storages.backends.s3boto3 import S3Boto3Storage
 
         print("\n--- Attempting to save MediaFile ---")
         print(f"Current DEFAULT_FILE_STORAGE: {settings.DEFAULT_FILE_STORAGE}")
         print(f"USE_S3 setting: {getattr(settings, 'USE_S3', 'Not defined')}")
         print(f"File field before save: {self.file}")
-
-        # Check storage class before save
-        storage_class = (
-            self.file.storage.__class__.__name__
-            if hasattr(self.file, "storage")
-            else "Unknown"
-        )
-        print(f"Storage class for model: {storage_class}")
-
-        # Ensure we're using S3 storage if configured
-        if getattr(settings, "USE_S3", False) and not isinstance(
-            self.file.storage, S3Boto3Storage
-        ):
-            print("Warning: File storage is not S3Boto3Storage, attempting to fix...")
-            from storages.backends.s3boto3 import S3Boto3Storage
-
-            if not hasattr(self, "_file_obj") and hasattr(self.file, "file"):
-                self._file_obj = self.file.file
-            self.file.storage = S3Boto3Storage()
-            if hasattr(self, "_file_obj"):
-                self.file.file = self._file_obj
+        print(f"Storage class for model: {self.file.storage.__class__.__name__}")
 
         try:
             super().save(*args, **kwargs)
@@ -72,6 +45,17 @@ class MediaFile(models.Model):
 
             print(traceback.format_exc())
             raise
+
+        print(f"File field after save: {self.file}")
+        try:
+            if self.file:
+                print(f"Generated URL: {self.file.url}")
+                print(f"File storage: {self.file.storage.__class__.__name__}")
+                print(f"File name: {self.file.name}")
+        except Exception as e:
+            print(f"Error getting file details: {str(e)}")
+
+        print("--- Finished saving MediaFile ---\n")
 
 
 class Post(models.Model):
