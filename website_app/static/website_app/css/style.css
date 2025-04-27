@@ -177,18 +177,15 @@ a:hover {
 
 .profile-header {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
+  gap: var(--spacing-half);
   margin-bottom: var(--spacing-double);
 }
 
-.avatar-container {
-  margin-bottom: var(--spacing-unit);
-}
-
 .pixel-avatar {
-  width: 96px;
-  height: 96px;
+  width: 24px;
+  height: 24px;
   image-rendering: pixelated;
   image-rendering: -moz-crisp-edges;
   image-rendering: crisp-edges;
@@ -196,7 +193,7 @@ a:hover {
 
 .greeting {
   font-size: 1.5rem;
-  margin-bottom: var(--spacing-unit);
+  margin-bottom: 0;
 }
 
 .bio-content {
