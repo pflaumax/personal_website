@@ -176,9 +176,9 @@ a:hover {
 }
 
 .profile-header {
-  display: flex;
-  flex-direction: row;
+  display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: var(--spacing-half);
   margin-bottom: var(--spacing-double);
 }
@@ -189,6 +189,7 @@ a:hover {
   image-rendering: pixelated;
   image-rendering: -moz-crisp-edges;
   image-rendering: crisp-edges;
+  display: block;
 }
 
 .greeting {
