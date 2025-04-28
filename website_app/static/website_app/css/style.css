@@ -85,11 +85,13 @@ body {
 
 .site-header {
   padding-top: 2rem;
+  padding-bottom: 1rem;
   text-align: center;
 }
 
 main.content {
   flex: 1;
+  padding-top: 1rem;
   padding-bottom: 2rem;
 }
 
@@ -176,25 +178,10 @@ a:hover {
 }
 
 .profile-header {
-  display: inline-flex;
+  display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: var(--spacing-half);
-  margin-bottom: var(--spacing-double);
-}
-
-.pixel-avatar {
-  width: 24px;
-  height: 24px;
-  image-rendering: pixelated;
-  image-rendering: -moz-crisp-edges;
-  image-rendering: crisp-edges;
-  display: block;
-}
-
-.greeting {
-  font-size: 1.5rem;
-  margin-bottom: 0;
 }
 
 .bio-content {
@@ -203,7 +190,7 @@ a:hover {
 }
 
 .skills-section {
-  margin-top: var(--spacing-double);
+  margin-top: 4rem;
 }
 
 .skills-section h3 {
@@ -702,15 +689,6 @@ a:hover {
   
   .projects-grid {
     grid-template-columns: 1fr;
-  }
-  
-  .pixel-avatar {
-    width: 80px;
-    height: 80px;
-  }
-  
-  .greeting {
-    font-size: 1.3rem;
   }
 }
 
