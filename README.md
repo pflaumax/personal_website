@@ -7,25 +7,27 @@ This website is built with **Python/Django** for the backend and a custom-design
 
 ## Features
 
-- **Blog System**: A Django-powered custom content management system for personal posts.
+- **Blog System**: A Django-powered custom content management system for personal posts
   
 - **Tools Page**:
-  - **Todo List Application**: Uses browser session storage to persist data.
-  - **Pomodoro Timer**: Custom JavaScript-based timer for productivity.
+  - **Todo List Application**: Uses browser session storage to persist data
+  - **Pomodoro Timer**: Custom JavaScript-based timer for productivity
   
-- **Responsive Design**: Fully mobile-friendly interface optimized for all screen sizes.
+- **Responsive Design**: Fully mobile-friendly interface optimized for all screen sizes
 
 
 ## Tech Stack
 
 - **Backend**: Python, Django
 - **Frontend**: HTML, CSS, JavaScript
-- **Storage**: Browser session storage for client-side data persistence
-
+- **Storage**: 
+  - **Browser session** storage for client-side data persistence
+  - **PostgreSQL** database via **[Neon Serverless](https://neon.tech/)** for blog posts
+  - **[AWS](https://aws.amazon.com/) Cloud Storage** for serving uploaded media files
 
 ## Deployment
 
-The website is deployed on Render and can be accessed at:  
+The website is deployed on **Render** and can be accessed at:  
 **[pflaumax.dev](https://pflaumax.dev)**
 
 
