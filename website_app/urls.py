@@ -17,4 +17,6 @@ urlpatterns = [
     path("contact/", views.contact, name="contact"),
     # Show list of images added.
     path("media-list/", views.media_list, name="media_list"),
+    # Ping page
+    path("healthcheck/", views.healthcheck),
 ]

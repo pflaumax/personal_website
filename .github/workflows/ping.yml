@@ -1,0 +1,14 @@
+name: Ping Website
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"  # Run each 10 min
+  workflow_dispatch:  # Manual run with GitHub UI
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send lightweight HTTP request
+        run: |
+          curl --silent --show-error --fail https://pflaumax.dev/healthcheck || exit 1
