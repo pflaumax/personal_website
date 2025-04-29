@@ -1,6 +1,6 @@
 from django.shortcuts import render, get_object_or_404
 from .models import MediaFile, Post
-from django.http import JsonResponse, HttpResponse
+from django.http import JsonResponse
 from django.contrib.admin.views.decorators import staff_member_required
 
 
@@ -52,7 +52,7 @@ def contact(request):
 
 def healthcheck(request):
     """Ping page"""
-    return HttpResponse("OK", content_type="text/plain")
+    return JsonResponse({"status": "OK"})
 
 
 def error_404(request, exception):
