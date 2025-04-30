@@ -89,6 +89,12 @@ body {
   text-align: center;
 }
 
+.status-container {
+  position: relative;
+  width: 100%;
+  margin-bottom: 1.5rem;
+}
+
 main.content {
   flex: 1;
   padding-top: 1rem;
@@ -128,9 +134,33 @@ a:hover {
 }
 
 /* 4. Header & Navigation */
+.open-to-work {
+  display: flex;
+  align-items: center;
+  position: absolute;
+  top: 50%;
+  right: 0;
+  transform: translateY(-50%);
+  padding: 0.25rem 0.5rem;
+  z-index: 10;
+}
+
+.status-circle {
+  width: 0.75rem;
+  height: 0.75rem;
+  background-color: var(--highlight-color-bright);
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 8px;
+}
+
+.status-text {
+  font-size: small;
+}
+
 .logotype {
   display: inline-block;
-  margin-bottom: 1.5rem;
+  margin-bottom: 0rem;
   font-size: 1.5rem;
 }
 
@@ -680,6 +710,45 @@ a:hover {
 @media (max-width: 768px) {
   :root {
     --font-size: var(--font-size-mobile);
+  }
+
+  .open-to-work {
+    position: static;
+    top: auto;
+    right: auto;
+    transform: none;
+    margin: 2.5rem auto 0;  
+    width: fit-content;
+    justify-content: center;
+    text-align: center;
+    left: 0;
+    right: 0;
+  }
+  
+  .logotype {
+    margin-bottom: 0;
+    padding-bottom: 0; 
+    margin-bottom: 0.5rem;
+    width: 100%;
+    text-align: center;
+  }
+  
+  .status-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    margin-bottom: 2.5rem;  
+    padding-bottom: 0.5rem; 
+  }
+
+  .logotype span {
+    padding: 0.3em;
+  }
+  
+  .site-header {
+    text-align: center;
   }
   
   .main-menu {

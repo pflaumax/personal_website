@@ -12,11 +12,17 @@
 <body>
   <div class="container">
     <header class="site-header">
-      <h1 class="logotype">
-        <a href="{% url 'website_app:index' %}">
-          <span>M</span><span>a</span><span>x</span> <span>P</span><span>f</span><span>l</span><span>a</span><span>u</span><span>m</span>
-        </a>
-      </h1>
+      <div class="status-container">
+        <h1 class="logotype">
+          <a href="{% url 'website_app:index' %}">
+            <span>M</span><span>a</span><span>x</span> <span>P</span><span>f</span><span>l</span><span>a</span><span>u</span><span>m</span>
+          </a>
+        </h1>
+        <div class="open-to-work">
+          <span class="status-circle"></span>
+          <span class="status-text">Open to work</span>
+        </div>
+      </div>
       <nav class="main-menu" aria-label="Main navigation">
         <a href="{% url 'website_app:home' %}">Home</a>
         <a href="{% url 'website_app:blog' %}">Blog</a>
