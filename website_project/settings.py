@@ -7,6 +7,11 @@ import dj_database_url
 # Load environment variables
 load_dotenv()
 
+# Admin URL
+ADMIN_URL = os.getenv("DJANGO_ADMIN_URL")
+if not ADMIN_URL:
+    raise ValueError("Missing required environment variable: DJANGO_ADMIN_URL")
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 

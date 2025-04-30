@@ -55,6 +55,11 @@ def healthcheck(request):
     return JsonResponse({"status": "OK"})
 
 
+def fadmin(request):
+    context = {}
+    return render(request, "website_app/errors/404.html", context, status=404)
+
+
 def error_404(request, exception):
     context = {}
     return render(request, "website_app/errors/404.html", context, status=404)
