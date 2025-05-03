@@ -49,41 +49,6 @@ if USE_S3:
 else:
     MEDIA_URL = "/media/"
     MEDIA_ROOT = os.path.join(BASE_DIR, "media")
-"""
-# OLD AWS S3 Storage Settings
-USE_S3 = os.getenv("USE_S3", "False").upper() == "TRUE"
-
-if USE_S3:
-    # AWS Credentials
-    DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
-    AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID")
-    AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
-    AWS_STORAGE_BUCKET_NAME = os.getenv("AWS_STORAGE_BUCKET_NAME")
-    AWS_S3_REGION_NAME = os.getenv("AWS_S3_REGION_NAME")
-    # AWS_DEFAULT_ACL = "public-read"
-    AWS_DEFAULT_ACL = None  # Don't set ACLs at all
-    AWS_S3_FILE_OVERWRITE = False  # Don't overwrite files with same name
-    AWS_LOCATION = "media"  # Subfolder
-    AWS_S3_OBJECT_PARAMETERS = {
-        "CacheControl": "max-age=86400",  # Cash files for 1 day
-    }
-    AWS_S3_CUSTOM_DOMAIN = (
-        f"{AWS_STORAGE_BUCKET_NAME}.s3.{AWS_S3_REGION_NAME}.amazonaws.com"
-    )
-
-    MEDIA_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/{AWS_LOCATION}/"
-    MEDIA_ROOT = os.path.join(BASE_DIR, "media")
-    # Static Files Storage (Optional feature S3)
-    # STATICFILES_STORAGE = 'storages.backends.s3boto3.S3StaticStorage'
-    # AWS_STATIC_LOCATION = 'static'
-    # STATIC_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/{AWS_STATIC_LOCATION}/'
-else:
-    # Local Storage Settings (if USE_S3 is False)
-    MEDIA_URL = "/media/"
-    MEDIA_ROOT = os.path.join(BASE_DIR, "media")
-    STATIC_URL = "/static/"
-    STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
-    # STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]"""
 
 # Application definition
 
@@ -91,6 +56,7 @@ INSTALLED_APPS = [
     # My apps
     "website_app",
     "tools",
+    "stats",
     # Third party apps
     "rest_framework",
     "tinymce",
@@ -110,6 +76,7 @@ MIDDLEWARE = [
     "website_app.middleware.StorageDebugMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
+    "stats.middleware.PageViewMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",

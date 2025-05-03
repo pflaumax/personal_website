@@ -11,6 +11,7 @@ urlpatterns = [
     path("tinymce/", include("tinymce.urls")),
     path(f"{settings.ADMIN_URL}/", admin.site.urls),
     path("admin/", fadmin),
+    path("api/stats/", include("stats.urls")),
 ]
 
 handler404 = "website_app.views.error_404"
