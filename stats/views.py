@@ -4,10 +4,21 @@ from .models import PageView
 
 
 def stats_view(request):
+    # Check if wants only specific data
+    format_type = request.GET.get("format", "full")
+
+    # For ESP, only root views
+    if format_type == "simple":
+        try:
+            root_view = PageView.objects.get(path="/")
+            return JsonResponse({"/": root_view.count})
+        except PageView.DoesNotExist:
+            return JsonResponse({"/": 0})
+
+    # Full structured response for web/other clients
     views = PageView.objects.all().order_by("-count")
 
-    # Create a structured response
-    structured_data = {
+    data = {
         "summary": {
             "total_page_views": sum(view.count for view in views),
             "unique_pages": len(views),
@@ -15,13 +26,4 @@ def stats_view(request):
         "pages": [{"path": view.path, "count": view.count} for view in views],
     }
 
-    # Also include flat format for backward compatibility
-    flat_data = {view.path: view.count for view in views}
-
-    # Combine both formats
-    combined_data = {
-        **flat_data,  # Include flat key-value pairs
-        **structured_data,  # Include structured data
-    }
-
-    return JsonResponse(combined_data)
+    return JsonResponse(data)
