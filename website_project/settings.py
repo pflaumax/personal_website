@@ -2,6 +2,7 @@ from pathlib import Path
 import os
 from dotenv import load_dotenv
 import dj_database_url
+import socket
 
 
 # Load environment variables
@@ -17,11 +18,15 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.environ.get("SECRET_KEY")
+if not SECRET_KEY:
+    raise ValueError("Missing required environment variable: SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get("DEBUG", "False") == "True"
 
 ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
+
+CSRF_TRUSTED_ORIGINS = os.getenv("CSRF_TRUSTED_ORIGINS", "").split(",")
 
 # AWS S3 settings
 USE_S3 = os.getenv("USE_S3", "False").upper() == "TRUE"
@@ -61,6 +66,8 @@ INSTALLED_APPS = [
     "rest_framework",
     "tinymce",
     "storages",
+    "django_extensions",
+    "debug_toolbar",
     # Default apps
     "django.contrib.admin",
     "django.contrib.auth",
@@ -71,6 +78,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    "debug_toolbar.middleware.DebugToolbarMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "website_app.middleware.StorageDebugMiddleware",
@@ -157,7 +165,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
-STATIC_URL = "static/"
+STATIC_URL = "/static/"
 STATICFILES_DIRS = [os.path.join(BASE_DIR, "website_app/static")]
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
@@ -197,6 +205,8 @@ TINYMCE_DEFAULT_CONFIG = {
     "media_list": "/media-list/?type=audio",
 }
 
-# Media files configuration
-MEDIA_URL = "/media/"
-MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+INTERNAL_IPS = [
+    "127.0.0.1",
+]
+
+SHELL_PLUS = "ipython"

@@ -3,6 +3,7 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from website_app.views import fadmin
+import debug_toolbar
 
 
 urlpatterns = [
@@ -22,3 +23,7 @@ handler400 = "website_app.views.error_400"
 
 # Always serve media files regardless of DEBUG setting
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+# Only include debug toolbar if DEBUG is True
+if settings.DEBUG:
+    urlpatterns += [path("__debug__/", include(debug_toolbar.urls))]
