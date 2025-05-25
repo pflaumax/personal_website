@@ -1,14 +1,15 @@
+from django.conf import settings
+from django.contrib.auth.models import User
 from django.db import models
 from django.utils.text import slugify
-from django.contrib.auth.models import User
-from tinymce.models import HTMLField
-from django.core.files.storage import default_storage
-from django.conf import settings
+
 from storages.backends.s3boto3 import S3Boto3Storage
-import os
+from tinymce.models import HTMLField
 
 
 class S3FileField(models.FileField):
+    """Custom FileField that uses S3 storage if USE_S3 is set in settings."""
+
     def __init__(self, *args, **kwargs):
         if getattr(settings, "USE_S3", False):
             kwargs["storage"] = S3Boto3Storage()
@@ -16,7 +17,10 @@ class S3FileField(models.FileField):
 
 
 class MediaFile(models.Model):
-    """Model for storing various media files"""
+    """
+    Model for storing various media files uploaded by users.
+    Supports different media types and stores file size on save.
+    """
 
     MEDIA_TYPE_CHOICES = (
         ("image", "Image"),
@@ -24,41 +28,35 @@ class MediaFile(models.Model):
         ("video", "Video"),
         ("document", "Document"),
     )
+
     title = models.CharField(max_length=200)
     file_type = models.CharField(
         max_length=10, choices=MEDIA_TYPE_CHOICES, default="image"
     )
-    # Use our custom S3FileField instead of models.FileField
     file = S3FileField(upload_to="media_files/")
+    file_size = models.PositiveIntegerField(null=True, blank=True)
     uploaded_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.title} ({self.get_file_type_display()})"
+        """Return a readable representation of the media file."""
+        size = self.file_size or 0
+        kb = size / 1024
+        return f"{self.title} ({self.get_file_type_display()}), {kb:.1f} kb"
 
     @property
     def file_url(self):
+        """Return the URL of the uploaded file."""
         return self.file.url
 
     def save(self, *args, **kwargs):
-        from django.conf import settings
-
-        print("\n--- Attempting to save MediaFile ---")
-        print(f"Current DEFAULT_FILE_STORAGE: {settings.DEFAULT_FILE_STORAGE}")
-        print(f"USE_S3 setting: {getattr(settings, 'USE_S3', 'Not defined')}")
-        print(f"File field before save: {self.file}")
-        print(f"Storage class for model: {self.file.storage.__class__.__name__}")
-
+        """Save the uploaded file."""
         try:
             super().save(*args, **kwargs)
             print(f"File successfully saved")
         except Exception as e:
             print(f"Error saving file: {str(e)}")
-            import traceback
-
-            print(traceback.format_exc())
             raise
 
-        print(f"File field after save: {self.file}")
         try:
             if self.file:
                 print(f"Generated URL: {self.file.url}")
@@ -71,7 +69,10 @@ class MediaFile(models.Model):
 
 
 class Post(models.Model):
-    """Model representing a blog post."""
+    """
+    Model representing a blog post.
+    Includes automatic slug generation and uniqueness check.
+    """
 
     title = models.CharField(max_length=200)
     content = HTMLField()
@@ -85,8 +86,14 @@ class Post(models.Model):
     class Meta:
         ordering = ["-date_added"]
 
+    def __str__(self):
+        """Return the title of the post."""
+        return self.title
+
     def save(self, *args, **kwargs):
-        """Slug generation and duplicate handling."""
+        """
+        Generate a unique slug on save, only if title is new or has changed.
+        """
         if not self.slug or self.title_has_changed():
             new_slug = slugify(self.title)
             self.slug = self.get_unique_slug(new_slug)
@@ -94,7 +101,7 @@ class Post(models.Model):
 
     def title_has_changed(self):
         """Check if the title has changed for existing posts."""
-        if self.pk:  # Primary key
+        if self.pk:
             original = Post.objects.get(pk=self.pk)
             return original.title != self.title
         return True  # For new post always generate slug
@@ -107,7 +114,3 @@ class Post(models.Model):
             slug = f"{base_slug}-{counter}"
             counter += 1
         return slug
-
-    def __str__(self):
-        """Return a string representation of the model."""
-        return self.title
