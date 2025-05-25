@@ -34,14 +34,11 @@ class MediaFile(models.Model):
         max_length=10, choices=MEDIA_TYPE_CHOICES, default="image"
     )
     file = S3FileField(upload_to="media_files/")
-    file_size = models.PositiveIntegerField(null=True, blank=True)
     uploaded_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         """Return a readable representation of the media file."""
-        size = self.file_size or 0
-        kb = size / 1024
-        return f"{self.title} ({self.get_file_type_display()}), {kb:.1f} kb"
+        return f"{self.title} ({self.get_file_type_display()})"  # type: ignore
 
     @property
     def file_url(self):

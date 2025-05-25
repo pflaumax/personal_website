@@ -9,7 +9,7 @@ class PostAdmin(admin.ModelAdmin):
 
 
 class MediaFileAdmin(admin.ModelAdmin):
-    list_display = ("title", "file_type", "file", "file_size", "uploaded_at")
+    list_display = ("title", "file_type", "file", "uploaded_at")
     list_filter = ("file_type", "uploaded_at")
     search_fields = ["title"]
 
