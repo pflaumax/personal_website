@@ -1,4 +1,3 @@
-# Create a new file: website_app/middleware.py
 from django.core.files.storage import default_storage
 
 

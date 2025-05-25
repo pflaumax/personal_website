@@ -34,4 +34,4 @@ def load_data():
 
 if __name__ == "__main__":
     run_migrations()
-    load_data()  # Add this to run after migrations
+    load_data()
