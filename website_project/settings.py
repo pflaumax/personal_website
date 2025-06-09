@@ -115,7 +115,7 @@ if os.environ.get("DATABASE_URL"):
     # Use PostgreSQL in production
     DATABASES = {
         "default": dj_database_url.config(
-            default=os.environ.get("DATABASE_URL", "YOUR_NEON_DATABASE_URI"),
+            default=os.environ.get("DATABASE_URL"),
             conn_max_age=600,
             ssl_require=True,  # Required for Neon
         )

@@ -1,25 +1,25 @@
-# name: Ping Website
+name: Ping Website
 
-# on:
-#   schedule:
-#     - cron: "*/10 * * * *"  # Run every 10 minutes
-#   workflow_dispatch:  # Manual trigger
+on:
+  schedule:
+    - cron: "*/10 * * * *"  # Run every 10 minutes
+  workflow_dispatch:  # Manual trigger
 
-# jobs:
-#   ping:
-#     runs-on: ubuntu-latest
-#     steps:
-#       - name: Send lightweight HTTP request with retries
-#         run: |
-#           for i in {1..3}; do
-#             if curl --silent --show-error --fail https://pflaumax.dev/healthcheck/; then
-#               echo "Healthcheck passed on attempt $i"
-#               break
-#             elif [ "$i" -lt 3 ]; then
-#               echo "Healthcheck failed on attempt $i, retrying..."
-#               sleep 10
-#             else
-#               echo "Healthcheck failed after 3 attempts."
-#               exit 1
-#             fi
-#           done
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send lightweight HTTP request with retries
+        run: |
+          for i in {1..3}; do
+            if curl --silent --show-error --fail https://pflaumax.dev/healthcheck/; then
+              echo "Healthcheck passed on attempt $i"
+              break
+            elif [ "$i" -lt 3 ]; then
+              echo "Healthcheck failed on attempt $i, retrying..."
+              sleep 10
+            else
+              echo "Healthcheck failed after 3 attempts."
+              exit 1
+            fi
+          done
