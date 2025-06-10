@@ -73,9 +73,6 @@ class Post(models.Model):
 
     title = models.CharField(max_length=200)
     content = HTMLField()
-    excerpt = models.TextField(
-        blank=True, max_length=300, help_text="Short description for list view"
-    )
     date_added = models.DateField(auto_now_add=True)
     slug = models.SlugField(unique=True, blank=True)
     owner = models.ForeignKey(User, on_delete=models.CASCADE)
