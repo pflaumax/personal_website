@@ -1,9 +1,9 @@
 {% extends "website_app/base.html" %}
 {% block content %}
 
-<section class="projects-section">
+<section class="projects-section" xmlns="http://www.w3.org/1999/html">
   <h2 class="section-title">Public Projects</h2>
-  
+
   <div class="projects-grid">
     <article class="project-card">
       <h3 class="project-title">
@@ -19,7 +19,7 @@
         <span class="tech-badge">Git</span>
       </div>
     </article>
-    
+
     <article class="project-card">
       <h3 class="project-title">
         <a href="https://github.com/pflaumax/event_manager" target="_blank" rel="noopener noreferrer">Event Manager</a>
@@ -51,7 +51,52 @@
         <span class="tech-badge">Raspberry Pi</span>
       </div>
     </article>
-    
+
+    <article class="project-card">
+      <h3 class="project-title">
+        <a href="https://github.com/pflaumax/fastapi_todo_list" target="_blank" rel="noopener noreferrer">FastAPI TODO List</a>
+      </h3>
+      <p class="project-description">A simple TODO list application built with FastAPI. It uses an in-memory dictionary as a database, Pydantic models for data validation, and includes comprehensive unit tests. Example HTTP requests provided for testing.</p>
+      <div class="project-tech">
+        <span class="tech-badge">Python</span>
+        <span class="tech-badge">FastAPI</span>
+        <span class="tech-badge">Pydantic</span>
+        <span class="tech-badge">Pytest</span>
+        <span class="tech-badge">GNU/Linux</span>
+        <span class="tech-badge">Git</span>
+      </div>
+    </article>
+
+    <article class="project-card">
+      <h3 class="project-title">
+        <a href="https://github.com/pflaumax/external_api_integration" target="_blank" rel="noopener noreferrer">GitHub User Fetcher</a>
+      </h3>
+      <p class="project-description">Fetches users from the GitHub API and saves them to a CSV file. FastAPI powered endpoints start tasks, Celery handles async processing, and Redis is used as the message broker. All services run in Docker containers.</p>
+      <div class="project-tech">
+        <span class="tech-badge">Python</span>
+        <span class="tech-badge">FastAPI</span>
+        <span class="tech-badge">Celery</span>
+        <span class="tech-badge">Redis</span>
+        <span class="tech-badge">Docker</span>
+        <span class="tech-badge">Git</span>
+      </div>
+    </article>
+
+    <article class="project-card">
+      <h3 class="project-title">
+        <a href="https://github.com/pflaumax/simple_ml_integration" target="_blank" rel="noopener noreferrer">ML Task Predictor</a>
+      </h3>
+      <p class="project-description">ML-powered REST API that predicts the priority of tasks based on their descriptions using text classification. The FastAPI server exposes endpoints for predicting task priorities. Model is trained on a CSV dataset.</p>
+      <div class="project-tech">
+        <span class="tech-badge">Python</span>
+        <span class="tech-badge">FastAPI</span>
+        <span class="tech-badge">ML</span>
+        <span class="tech-badge">Data Processing</span>
+        <span class="tech-badge">Pandas</span>
+        <span class="tech-badge">Scikit Learn</span>
+        <span class="tech-badge">Git</span>
+      </div>
+    </article>
   </div>
 </section>
 
