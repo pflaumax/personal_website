@@ -9,6 +9,7 @@ __pycache__/
 
 # Virtual Environment
 website_env/
+.venv/
 venv/
 env/
 .env/
@@ -80,3 +81,5 @@ coverage.xml
 
 data.json
 post_media_data.json
+
+media_for_blogposts/
