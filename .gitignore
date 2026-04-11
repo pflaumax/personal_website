@@ -85,3 +85,7 @@ data.json
 post_media_data.json
 
 media_for_blogposts/
+/deployment/
+
+.mypy_cache/
+/db_backup/

@@ -113,11 +113,14 @@ WSGI_APPLICATION = "website_project.wsgi.application"
 # Database configuration
 if os.environ.get("DATABASE_URL"):
     # Use PostgreSQL in production
+    # ssl_require=False for local Pi connections; set to True for remote/cloud DBs
+    _db_url = os.environ.get("DATABASE_URL", "")
+    _ssl_require = "localhost" not in _db_url and "127.0.0.1" not in _db_url
     DATABASES = {
         "default": dj_database_url.config(
-            default=os.environ.get("DATABASE_URL"),
+            default=_db_url,
             conn_max_age=600,
-            ssl_require=True,
+            ssl_require=_ssl_require,
         )
     }
 else:
