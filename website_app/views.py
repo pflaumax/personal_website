@@ -53,7 +53,6 @@ def contact(request):
 
 
 @csrf_exempt
-@require_GET
 def healthcheck(request):
     """Ping page"""
     return JsonResponse({"status": "OK"})
