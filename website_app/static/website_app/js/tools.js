@@ -1,3 +1,7 @@
+// Read here, not inside the DOMContentLoaded handler below — document.currentScript
+// is only set during this script's own synchronous execution.
+const alarmSoundUrl = document.currentScript.dataset.soundUrl;
+
 document.addEventListener("DOMContentLoaded", function() {
     const taskInput = document.getElementById("task-input");
     const taskForm = document.getElementById("task-form");
@@ -230,7 +234,7 @@ document.addEventListener("DOMContentLoaded", function() {
         // Play notification sound if enabled
         if (soundToggle.checked) {
             try {
-                const audio = new Audio('/static/website_app/sounds/alarm.mp3');
+                const audio = new Audio(alarmSoundUrl);
                 audio.play();
             } catch (error) {
                 console.error("Error playing sound:", error);

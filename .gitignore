@@ -38,6 +38,7 @@ staticfiles/
 *.swp
 *.swo
 .DS_Store
+.claude/settings.local.json
 
 # Distribution / packaging
 .Python

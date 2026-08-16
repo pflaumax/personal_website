@@ -1,27 +1,32 @@
+from django.db.models import Count, Sum
 from django.http import JsonResponse
+
+from website_project.decorators import staff_member_required_or_404
+
 from .models import PageView
 
+DEFAULT_LIMIT = 10
+MAX_LIMIT = 100
 
+
+@staff_member_required_or_404
 def stats_view(request):
-    # Get limit from query parameter, default to 10
-    limit = request.GET.get("limit", 10)
+
     try:
-        limit = int(limit)
-    except ValueError:
-        limit = 10
+        limit = int(request.GET.get("limit", DEFAULT_LIMIT))
+    except (TypeError, ValueError):
+        limit = DEFAULT_LIMIT
+    limit = max(0, min(limit, MAX_LIMIT))
 
-    views = PageView.objects.all().order_by("-count")
-    all_views = views  # Keep a reference to all views for summary stats
-
-    # Apply limit for the pages list
-    views = views[:limit]
+    views = PageView.objects.order_by("-count", "path")
+    summary = views.aggregate(total_page_views=Sum("count"), unique_pages=Count("id"))
 
     data = {
         "summary": {
-            "total_page_views": sum(v.count for v in all_views),
-            "unique_pages": all_views.count(),
+            "total_page_views": summary["total_page_views"] or 0,
+            "unique_pages": summary["unique_pages"] or 0,
         },
-        "pages": [{"path": view.path, "count": view.count} for view in views],
+        "pages": [{"path": view.path, "count": view.count} for view in views[:limit]],
     }
 
     return JsonResponse(data)

@@ -273,10 +273,6 @@ a:hover {
   font-size: 0.9rem;
 }
 
-.blog-excerpt {
-  margin-bottom: 0;
-}
-
 .no-posts {
   text-align: center;
   padding: 3rem 0;
@@ -530,15 +526,6 @@ a:hover {
   color: var(--text-muted);
 }
 
-.task-delete {
-  background: none;
-  border: none;
-  color: #ff6b6b;
-  font-size: 1.25rem;
-  cursor: pointer;
-  padding: 0 0.5rem;
-}
-
 .task-empty-state {
   text-align: center;
   color: var(--text-muted);
@@ -546,11 +533,6 @@ a:hover {
 }
 
 /* Pomodoro Timer Styles */
-.timer-card {
-  height: auto;
-  display: flex;
-  flex-direction: column;
-}
 
 .timer-display {
   text-align: center;
@@ -770,9 +752,5 @@ a:hover {
   
   .tools-grid {
     grid-template-columns: repeat(2, 1fr);
-  }
-
-  .timer-card {
-    height: 100%;
   }
 }

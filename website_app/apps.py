@@ -1,6 +1,9 @@
+import logging
+
 from django.apps import AppConfig
 from django.core.files.storage import default_storage
-import django.db.models.fields.files
+
+logger = logging.getLogger(__name__)
 
 
 class WebsiteAppConfig(AppConfig):
@@ -8,12 +11,4 @@ class WebsiteAppConfig(AppConfig):
     name = "website_app"
 
     def ready(self):
-        # Monkey patch the FileField to always use default_storage
-        original_init = django.db.models.fields.files.FileField.__init__
-
-        def patched_init(self, *args, **kwargs):
-            if "storage" not in kwargs:
-                kwargs["storage"] = default_storage
-            original_init(self, *args, **kwargs)
-
-        django.db.models.fields.files.FileField.__init__ = patched_init
+        logger.info("Default storage class: %s", default_storage.__class__.__name__)

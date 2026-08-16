@@ -1,31 +1,12 @@
-asgiref==3.8.1
-awscli==1.44.78
+# Direct production dependencies only. Transitive dependencies (asgiref,
+# boto3/botocore, sqlparse, etc.) are resolved by pip and not pinned here —
+# see requirements-dev.txt for local/dev-only tooling on top of this file.
+Django==5.2.17
 boto3==1.42.88
-botocore==1.42.88
-colorama==0.4.6
 dj-database-url==2.3.0
-Django==5.2.13
-django-debug-toolbar==5.2.0
-django-extensions==4.1
-django-js-asset==3.1.2
 django-storages==1.14.6
 django-tinymce==4.1.0
-djangorestframework==3.15.2
-docutils==0.19
-git-filter-repo==2.47.0
 gunicorn==23.0.0
-jmespath==1.0.1
-packaging==25.0
-pillow==12.2.0
 psycopg2-binary==2.9.10
-pyasn1==0.6.3
-python-dateutil==2.9.0.post0
-python-dotenv==1.1.0
-PyYAML==6.0.2
-rsa==4.7.2
-s3transfer==0.16.0
-six==1.17.0
-sqlparse==0.5.5
-typing_extensions==4.13.2
-urllib3==2.6.3
-whitenoise==6.9.0
+python-dotenv==1.2.2
+whitenoise==6.12.0

@@ -1,10 +1,13 @@
+import logging
+
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.db import models
 from django.utils.text import slugify
-
 from storages.backends.s3boto3 import S3Boto3Storage
 from tinymce.models import HTMLField
+
+logger = logging.getLogger(__name__)
 
 
 class S3FileField(models.FileField):
@@ -17,16 +20,13 @@ class S3FileField(models.FileField):
 
 
 class MediaFile(models.Model):
-    """
-    Model for storing various media files uploaded by users.
-    Supports different media types and stores file size on save.
-    """
+    """Model for storing media files uploaded by users."""
 
+    # Limited to what TinyMCE actually wires up (see TINYMCE_DEFAULT_CONFIG's
+    # image_list/media_list) — there is no upload path for video/document.
     MEDIA_TYPE_CHOICES = (
         ("image", "Image"),
         ("audio", "Audio"),
-        ("video", "Video"),
-        ("document", "Document"),
     )
 
     title = models.CharField(max_length=200)
@@ -47,22 +47,24 @@ class MediaFile(models.Model):
 
     def save(self, *args, **kwargs):
         """Save the uploaded file."""
-        try:
-            super().save(*args, **kwargs)
-            print(f"File successfully saved")
-        except Exception as e:
-            print(f"Error saving file: {str(e)}")
-            raise
+        super().save(*args, **kwargs)
+
+        if not self.file:
+            logger.debug("Saved MediaFile %r without a file", self.title)
+            return
 
         try:
-            if self.file:
-                print(f"Generated URL: {self.file.url}")
-                print(f"File storage: {self.file.storage.__class__.__name__}")
-                print(f"File name: {self.file.name}")
-        except Exception as e:
-            print(f"Error getting file details: {str(e)}")
-
-        print("--- Finished saving MediaFile ---\n")
+            logger.debug(
+                "Saved MediaFile %r: storage=%s, url=%s, name=%s",
+                self.title,
+                self.file.storage.__class__.__name__,
+                self.file.url,
+                self.file.name,
+            )
+        except Exception:
+            logger.exception(
+                "Could not resolve file details for MediaFile %r", self.title
+            )
 
 
 class Post(models.Model):
