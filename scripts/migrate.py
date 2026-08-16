@@ -1,8 +1,8 @@
 import os
 import subprocess
 import sys
-from dotenv import load_dotenv
 
+from dotenv import load_dotenv
 
 # Add the project root directory to the Python path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -21,11 +21,16 @@ def run_migrations():
 
 
 def load_data():
-    print("Loading data from post_media_data.json...")
+    fixture_path = os.path.join(
+        os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data.json"
+    )
+    if not os.path.exists(fixture_path):
+        print("No data.json fixture found, skipping data load.")
+        return
+
+    print("Loading data from data.json...")
     try:
-        subprocess.check_call(
-            [sys.executable, "manage.py", "loaddata", "post_media_data.json"]
-        )
+        subprocess.check_call([sys.executable, "manage.py", "loaddata", "data.json"])
         print("Data loaded successfully!")
     except subprocess.CalledProcessError as e:
         print(f"Error loading data: {e}")

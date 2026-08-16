@@ -1,0 +1,8 @@
+# Local development only — not installed in production (see
+# website_project/settings.py and urls.py, which gate these behind `if DEBUG`
+# specifically because they are absent there).
+-r requirements.txt
+
+django-debug-toolbar==5.2.0
+django-extensions==4.1
+ruff==0.16.3

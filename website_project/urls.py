@@ -1,10 +1,9 @@
-from django.contrib import admin
-from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
-from website_app.views import fadmin
-import debug_toolbar
+from django.contrib import admin
+from django.urls import include, path
 
+from website_app.views import fadmin
 
 urlpatterns = [
     path("tools/", include("tools.urls")),
@@ -21,9 +20,14 @@ handler403 = "website_app.views.error_403"
 handler400 = "website_app.views.error_400"
 
 
-# Always serve media files regardless of DEBUG setting
+# Development only: static() returns [] when DEBUG is False, or when MEDIA_URL
+# points at another host (as it does under USE_S3). In production media is
+# served by Nginx, or by S3 directly.
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
-# Only include debug toolbar if DEBUG is True
+# django-debug-toolbar is a dev-only dependency (requirements-dev.txt) and
+# is not installed in production — the import must stay inside this guard.
 if settings.DEBUG:
+    import debug_toolbar
+
     urlpatterns += [path("__debug__/", include(debug_toolbar.urls))]

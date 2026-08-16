@@ -1,5 +1,6 @@
 from django.contrib import admin
-from .models import Post, MediaFile
+
+from .models import MediaFile, Post
 
 
 class PostAdmin(admin.ModelAdmin):

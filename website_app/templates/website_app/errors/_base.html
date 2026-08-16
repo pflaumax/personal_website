@@ -1,0 +1,9 @@
+{% extends "website_app/base.html" %}
+{% block content %}
+<div class="error-page">
+  <h1>{{ title }}</h1>
+  <p>↩return to <a href="{% url 'website_app:index' %}">pflaumax.dev</a></p>
+  <br>
+  <p>{{ body }}</p>
+</div>
+{% endblock %}

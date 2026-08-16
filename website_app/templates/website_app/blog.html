@@ -13,9 +13,6 @@
       <div class="blog-meta">
         <time datetime="{{ item.date_added|date:'Y-m-d' }}" class="blog-date">{{ item.date_added|date:"F j, Y" }}</time>
       </div>
-      {% if item.excerpt %}
-        <p class="blog-excerpt">{{ item.excerpt }}</p>
-      {% endif %}
     </article>
     {% empty %}
       <div class="no-posts">No posts have been added yet.</div>

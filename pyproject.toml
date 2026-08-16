@@ -1,0 +1,16 @@
+[tool.ruff]
+target-version = "py312"
+line-length = 88
+extend-exclude = ["*/migrations/*", "*.md"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP"]
+
+[tool.ruff.lint.per-file-ignores]
+# django.setup() must run before these can be imported.
+"scripts/create_superuser.py" = ["E402"]
+# Django's own AUTH_PASSWORD_VALIDATORS dotted path, can't be shortened.
+"website_project/settings.py" = ["E501"]
+
+[tool.ruff.format]
+quote-style = "double"

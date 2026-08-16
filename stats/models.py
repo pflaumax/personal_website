@@ -2,7 +2,7 @@ from django.db import models
 
 
 class PageView(models.Model):
-    path = models.CharField(max_length=225, unique=True)
+    path = models.CharField(max_length=512, unique=True)
     count = models.PositiveIntegerField(default=0)
 
     def __str__(self):

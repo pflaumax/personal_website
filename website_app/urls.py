@@ -1,12 +1,18 @@
 from django.urls import path
+from django.views.generic import RedirectView
+
 from . import views
 
 app_name = "website_app"
 urlpatterns = [
     # Show home page by default.
     path("", views.index, name="index"),
-    # Show home page with 'Home' button.
-    path("home/", views.home, name="home"),
+    # Legacy URL, kept as a redirect for existing links/bookmarks.
+    path(
+        "home/",
+        RedirectView.as_view(pattern_name="website_app:index", permanent=True),
+        name="home",
+    ),
     # Show all posts.
     path("blog/", views.blog, name="blog"),
     # Show post content.

@@ -1,7 +1,8 @@
 import os
 from pathlib import Path
-from dotenv import load_dotenv
+
 import dj_database_url
+from dotenv import load_dotenv
 
 # Load environment variables
 load_dotenv()
@@ -24,12 +25,20 @@ DEBUG = os.environ.get("DEBUG", "False") == "True"
 
 ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
 
-CSRF_TRUSTED_ORIGINS = os.getenv("CSRF_TRUSTED_ORIGINS", "").split(",")
+
+CSRF_TRUSTED_ORIGINS = [
+    origin for origin in os.getenv("CSRF_TRUSTED_ORIGINS", "").split(",") if origin
+]
+
+if not DEBUG:
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+    SECURE_HSTS_SECONDS = 3600
 
 # AWS S3 settings
 USE_S3 = os.getenv("USE_S3", "False").upper() == "TRUE"
 if USE_S3:
-    DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
     AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID")
     AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
     AWS_STORAGE_BUCKET_NAME = os.getenv("AWS_STORAGE_BUCKET_NAME")
@@ -42,16 +51,26 @@ if USE_S3:
         f"{AWS_STORAGE_BUCKET_NAME}.s3.{AWS_S3_REGION_NAME}.amazonaws.com"
     )
     MEDIA_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/{AWS_LOCATION}/"
-
-    # Force default_storage to be set early
-    from storages.backends.s3boto3 import S3Boto3Storage
-    from django.core.files.storage import default_storage
-    import django.core.files.storage
-
-    django.core.files.storage.default_storage = S3Boto3Storage()
 else:
     MEDIA_URL = "/media/"
     MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+
+# DEFAULT_FILE_STORAGE and STATICFILES_STORAGE were removed in Django 5.1;
+# STORAGES is the current API and was previously missing here, so both
+# settings below were silently ignored and Django's built-in defaults
+# (FileSystemStorage / StaticFilesStorage) applied regardless of USE_S3.
+STORAGES = {
+    "default": {
+        "BACKEND": (
+            "storages.backends.s3boto3.S3Boto3Storage"
+            if USE_S3
+            else "django.core.files.storage.FileSystemStorage"
+        ),
+    },
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
 
 # Application definition
 
@@ -61,11 +80,8 @@ INSTALLED_APPS = [
     "tools",
     "stats",
     # Third party apps
-    "rest_framework",
     "tinymce",
     "storages",
-    "django_extensions",
-    "debug_toolbar",
     # Default apps
     "django.contrib.admin",
     "django.contrib.auth",
@@ -76,10 +92,8 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    "debug_toolbar.middleware.DebugToolbarMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
-    "website_app.middleware.StorageDebugMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "stats.middleware.PageViewMiddleware",
@@ -88,7 +102,10 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+
+if DEBUG:
+    INSTALLED_APPS += ["django_extensions", "debug_toolbar"]
+    MIDDLEWARE.insert(0, "debug_toolbar.middleware.DebugToolbarMiddleware")
 
 ROOT_URLCONF = "website_project.urls"
 
@@ -176,6 +193,29 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+# Logging
+LOG_LEVEL = os.environ.get("LOG_LEVEL", "INFO").upper()
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "default": {
+            "format": "%(asctime)s %(levelname)s %(name)s: %(message)s",
+        },
+    },
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": "default",
+        },
+    },
+    "root": {
+        "handlers": ["console"],
+        "level": LOG_LEVEL,
+    },
+}
+
 # TinyMCE configuration
 TINYMCE_DEFAULT_CONFIG = {
     "height": 360,
@@ -185,17 +225,17 @@ TINYMCE_DEFAULT_CONFIG = {
     "selector": "textarea",
     "theme": "silver",
     "plugins": """
-        textcolor save link image media preview codesample contextmenu
+        save link image media preview codesample
         table code lists fullscreen insertdatetime nonbreaking
-        contextmenu directionality searchreplace wordcount visualblocks
-        visualchars code fullscreen autolink lists charmap print hr
+        directionality searchreplace wordcount visualblocks
+        visualchars autolink charmap
         anchor pagebreak
         """,
     "toolbar1": """
-        fullscreen preview bold italic underline | fontselect,
+        fullscreen preview bold italic underline | fontselect
         fontsizeselect | forecolor backcolor | alignleft alignright |
         aligncenter alignjustify | indent outdent | bullist numlist table |
-        | link image media | codesample |
+        link image media | codesample
         """,
     "contextmenu": "formats | link image media",
     "menubar": True,
