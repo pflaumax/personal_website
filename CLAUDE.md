@@ -60,4 +60,4 @@ To embed media in a post, the file must first exist as a `MediaFile` in admin: `
 
 Self-hosted on a Raspberry Pi 4: Nginx → Gunicorn under a `django-website` systemd unit (`sudo systemctl restart django-website`), Postgres local. Step-by-step guides live in `deployment/` — note that directory and `media_for_blogposts/` are **gitignored and local-only**, so they won't appear on a fresh clone.
 
-`.github/workflows/ping.yml` curls `https://pflaumax.dev/healthcheck/` every 10 minutes; `/healthcheck/` is `@csrf_exempt @require_GET` and excluded from page-view stats.
+`.github/workflows/ping.yml` curls `https://pflaumax.dev/healthcheck/` every 10 minutes; `/healthcheck/` is `@csrf_exempt` (no `@require_GET` — HEAD requests must pass too) and excluded from page-view stats.

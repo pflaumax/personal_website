@@ -3,8 +3,6 @@ from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 from django.utils.safestring import mark_safe
 from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_GET
-
 from website_project.decorators import staff_member_required_or_404
 
 from .models import MediaFile, Post
@@ -52,7 +50,6 @@ def contact(request):
 
 
 @csrf_exempt
-@require_GET
 def healthcheck(request):
     """Ping page"""
     return JsonResponse({"status": "OK"})
