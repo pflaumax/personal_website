@@ -1,22 +1,11 @@
 import logging
 
-from django.conf import settings
 from django.contrib.auth.models import User
 from django.db import models
 from django.utils.text import slugify
-from storages.backends.s3boto3 import S3Boto3Storage
 from tinymce.models import HTMLField
 
 logger = logging.getLogger(__name__)
-
-
-class S3FileField(models.FileField):
-    """Custom FileField that uses S3 storage if USE_S3 is set in settings."""
-
-    def __init__(self, *args, **kwargs):
-        if getattr(settings, "USE_S3", False):
-            kwargs["storage"] = S3Boto3Storage()
-        super().__init__(*args, **kwargs)
 
 
 class MediaFile(models.Model):
@@ -33,7 +22,10 @@ class MediaFile(models.Model):
     file_type = models.CharField(
         max_length=10, choices=MEDIA_TYPE_CHOICES, default="image"
     )
-    file = S3FileField(upload_to="media_files/")
+    # Storage comes from STORAGES["default"] (settings.py), which is the single
+    # place USE_S3 is honoured. This used to be a custom S3FileField that bound
+    # S3Boto3Storage at import time — a second, competing mechanism.
+    file = models.FileField(upload_to="media_files/")
     uploaded_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
