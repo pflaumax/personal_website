@@ -94,3 +94,9 @@ media_for_blogposts/
 
 .mypy_cache/
 /db_backup/
+
+# Database dumps anywhere in the tree. This repo is public and a dump carries
+# password hashes and session keys — /db_backup/ alone is one stray `mv` away
+# from leaking them.
+*.dump
+*.sql.gz
