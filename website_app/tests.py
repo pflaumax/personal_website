@@ -1,8 +1,10 @@
 from django.contrib.auth.models import User
+from django.core.management import call_command
 from django.test import RequestFactory, TestCase
 from django.urls import reverse
 
 from . import views
+from .media_urls import LEGACY_S3_MEDIA_PREFIX, rewrite_content, rewrite_posts
 from .models import MediaFile, Post
 
 
@@ -166,10 +168,8 @@ class PostSlugTests(TestCase):
 class MediaFileSaveLoggingTests(TestCase):
     """
     MediaFile.save() used to print diagnostics to stdout; it now logs them.
-    Deliberately never assigns a `file` here — this environment's S3Boto3Storage
-    points at a real bucket (see S3FileField), and assigning file content would
-    write to it. See website_app/models.py for the S3-at-import-time issue that
-    makes storage untestable without hitting the real backend.
+    Deliberately never assigns a `file` here, so the test never writes through
+    whichever backend STORAGES["default"] resolves to in this environment.
     """
 
     def test_save_without_a_file_logs_instead_of_printing(self):
@@ -178,3 +178,98 @@ class MediaFileSaveLoggingTests(TestCase):
 
         self.assertTrue(media.pk)
         self.assertTrue(any("No File Yet" in line for line in captured.output))
+
+
+class RewriteContentTests(TestCase):
+    """
+    The S3 bucket these URLs pointed at is gone, so every absolute reference is
+    a broken image. rewrite_content() is the pure half of the fix.
+    """
+
+    def test_absolute_s3_url_becomes_site_relative(self):
+        body = f'<img src="{LEGACY_S3_MEDIA_PREFIX}media_files/nvim.webp">'
+
+        new_body, replacements = rewrite_content(body)
+
+        self.assertEqual(replacements, 1)
+        self.assertEqual(new_body, '<img src="/media/media_files/nvim.webp">')
+
+    def test_audio_and_image_in_one_body_are_both_rewritten(self):
+        body = (
+            f'<img src="{LEGACY_S3_MEDIA_PREFIX}media_files/f75.webp">'
+            f'<audio src="{LEGACY_S3_MEDIA_PREFIX}media_files/asmr_75.mp3"></audio>'
+        )
+
+        new_body, replacements = rewrite_content(body)
+
+        self.assertEqual(replacements, 2)
+        self.assertNotIn("amazonaws.com", new_body)
+
+    def test_is_idempotent(self):
+        body = f'<img src="{LEGACY_S3_MEDIA_PREFIX}media_files/nvim.webp">'
+
+        once, _ = rewrite_content(body)
+        twice, replacements = rewrite_content(once)
+
+        self.assertEqual(replacements, 0)
+        self.assertEqual(once, twice)
+
+    def test_unrelated_urls_are_left_alone(self):
+        body = '<a href="https://example.com/media/thing.png">link</a>'
+
+        new_body, replacements = rewrite_content(body)
+
+        self.assertEqual(replacements, 0)
+        self.assertEqual(new_body, body)
+
+    def test_empty_content_does_not_crash(self):
+        for value in ("", None):
+            with self.subTest(value=value):
+                self.assertEqual(rewrite_content(value), (value, 0))
+
+
+class RewriteMediaUrlsCommandTests(TestCase):
+    def setUp(self):
+        self.owner = User.objects.create_user("author", password="pw")
+        self.post = Post.objects.create(
+            title="Uses The Tools I Use",
+            content=f'<img src="{LEGACY_S3_MEDIA_PREFIX}media_files/nvim.webp">',
+            owner=self.owner,
+        )
+        self.untouched = Post.objects.create(
+            title="Plain Post", content="<p>no media here</p>", owner=self.owner
+        )
+
+    def test_dry_run_writes_nothing(self):
+        call_command("rewrite_media_urls", "--dry-run", verbosity=0)
+
+        self.post.refresh_from_db()
+        self.assertIn("amazonaws.com", self.post.content)
+
+    def test_command_rewrites_only_affected_posts(self):
+        call_command("rewrite_media_urls", verbosity=0)
+
+        self.post.refresh_from_db()
+        self.untouched.refresh_from_db()
+
+        self.assertNotIn("amazonaws.com", self.post.content)
+        self.assertIn("/media/media_files/nvim.webp", self.post.content)
+        self.assertEqual(self.untouched.content, "<p>no media here</p>")
+
+    def test_rewriting_does_not_disturb_the_slug(self):
+        """
+        rewrite_posts() writes via queryset.update() precisely so Post.save()'s
+        slug regeneration never runs. A changed permalink would break links.
+        """
+        original_slug = self.post.slug
+
+        call_command("rewrite_media_urls", verbosity=0)
+
+        self.post.refresh_from_db()
+        self.assertEqual(self.post.slug, original_slug)
+
+    def test_running_twice_is_a_no_op(self):
+        call_command("rewrite_media_urls", verbosity=0)
+        second_run = rewrite_posts(Post)
+
+        self.assertEqual(second_run, [])
