@@ -20,7 +20,11 @@ ENV/
 local_settings.py
 db.sqlite3
 db.sqlite3-journal
-media/
+
+# media/ is deliberately NOT ignored. These files are already served publicly by
+# the site, so tracking them leaks nothing — and since the S3 bucket that used to
+# hold them was deleted, git is now their offsite copy. A fresh clone (and every
+# deploy, which is a git pull) gets working images with no extra step.
 
 # Collected static files
 staticfiles/
