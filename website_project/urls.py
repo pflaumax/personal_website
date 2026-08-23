@@ -20,9 +20,9 @@ handler403 = "website_app.views.error_403"
 handler400 = "website_app.views.error_400"
 
 
-# Development only: static() returns [] when DEBUG is False, or when MEDIA_URL
-# points at another host (as it does under USE_S3). In production media is
-# served by Nginx, or by S3 directly.
+# Development only: static() returns [] when DEBUG is False. In production
+# media is served by Nginx straight from MEDIA_ROOT — the request never
+# reaches Django.
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 # django-debug-toolbar is a dev-only dependency (requirements-dev.txt) and

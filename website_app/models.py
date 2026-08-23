@@ -22,9 +22,9 @@ class MediaFile(models.Model):
     file_type = models.CharField(
         max_length=10, choices=MEDIA_TYPE_CHOICES, default="image"
     )
-    # Storage comes from STORAGES["default"] (settings.py), which is the single
-    # place USE_S3 is honoured. This used to be a custom S3FileField that bound
-    # S3Boto3Storage at import time — a second, competing mechanism.
+    # No storage= argument on purpose: STORAGES["default"] in settings.py is the
+    # only thing that decides the backend. This was once a custom S3FileField
+    # that bound S3Boto3Storage at import time — a second, competing mechanism.
     file = models.FileField(upload_to="media_files/")
     uploaded_at = models.DateTimeField(auto_now_add=True)
 
