@@ -36,36 +36,19 @@ if not DEBUG:
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
     SECURE_HSTS_SECONDS = 3600
 
-# AWS S3 settings
-USE_S3 = os.getenv("USE_S3", "False").upper() == "TRUE"
-if USE_S3:
-    AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID")
-    AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
-    AWS_STORAGE_BUCKET_NAME = os.getenv("AWS_STORAGE_BUCKET_NAME")
-    AWS_S3_REGION_NAME = os.getenv("AWS_S3_REGION_NAME")
-    AWS_DEFAULT_ACL = None  # Don't use ACLs
-    AWS_S3_FILE_OVERWRITE = False
-    AWS_LOCATION = "media"
-    AWS_S3_OBJECT_PARAMETERS = {"CacheControl": "max-age=86400"}
-    AWS_S3_CUSTOM_DOMAIN = (
-        f"{AWS_STORAGE_BUCKET_NAME}.s3.{AWS_S3_REGION_NAME}.amazonaws.com"
-    )
-    MEDIA_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/{AWS_LOCATION}/"
-else:
-    MEDIA_URL = "/media/"
-    MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+# Media lives on local disk and is served by Nginx (see deployment/). The site
+# used to switch to S3 on a USE_S3 env flag; that bucket was deleted in August
+# 2026 and the files were moved here, so the flag, the AWS_* settings and the
+# boto3/django-storages dependencies are gone. Post bodies that still held
+# absolute bucket URLs were rewritten by `manage.py rewrite_media_urls`.
+MEDIA_URL = "/media/"
+MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
 # DEFAULT_FILE_STORAGE and STATICFILES_STORAGE were removed in Django 5.1;
-# STORAGES is the current API and was previously missing here, so both
-# settings below were silently ignored and Django's built-in defaults
-# (FileSystemStorage / StaticFilesStorage) applied regardless of USE_S3.
+# STORAGES is the current API.
 STORAGES = {
     "default": {
-        "BACKEND": (
-            "storages.backends.s3boto3.S3Boto3Storage"
-            if USE_S3
-            else "django.core.files.storage.FileSystemStorage"
-        ),
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
     },
     "staticfiles": {
         "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
@@ -81,7 +64,6 @@ INSTALLED_APPS = [
     "stats",
     # Third party apps
     "tinymce",
-    "storages",
     # Default apps
     "django.contrib.admin",
     "django.contrib.auth",

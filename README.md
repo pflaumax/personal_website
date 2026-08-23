@@ -7,13 +7,13 @@ A personal website built with Django, featuring a blog with a rich-text CMS, a t
 
 ## Features
 
-- **Blog** — Rich-text posts managed via TinyMCE in the Django admin. Posts use auto-generated unique slugs and support embedded images and audio uploaded to AWS S3.
+- **Blog** — Rich-text posts managed via TinyMCE in the Django admin. Posts use auto-generated unique slugs and support embedded images and audio.
 
 - **Tools Page** — Client-side productivity apps (Todo List and Pomodoro Timer) built with vanilla JavaScript. Data persists in browser session storage — no backend required.
 
 - **Page View Analytics** — Custom middleware counts successful (2xx) GET requests per path, excluding static and media files, admin, API and editor routes. Stats are available to staff users in the Django admin, and via a staff-only JSON API at `/api/stats/` — the endpoint returns 404 to everyone else.
 
-- **Media Management** — A `MediaFile` model supports image and audio uploads. Files are stored on AWS S3 or locally, controlled by the `USE_S3` environment variable.
+- **Media Management** — A `MediaFile` model supports image and audio uploads. Files are stored on local disk under `MEDIA_ROOT` and served by Nginx; they are tracked in git, so a fresh clone has working media.
 
 - **Custom Error Pages** — Styled 400, 403, 404, and 500 error handlers.
 
@@ -27,7 +27,7 @@ A personal website built with Django, featuring a blog with a rich-text CMS, a t
 | Backend     | Python 3.12+, Django 5.2, Gunicorn                             |
 | Frontend    | HTML, CSS, JavaScript (no framework)                           |
 | Database    | PostgreSQL (self-hosted on Raspberry Pi, prod), SQLite (dev)  |
-| Media       | AWS S3 via `django-storages` + `boto3`                         |
+| Media       | Local filesystem, served by Nginx                              |
 | Rich Text   | TinyMCE (`django-tinymce`)                                     |
 | Static Files| WhiteNoise (content-hashed, gzip-precompressed)                |
 | CI/CD       | GitHub Actions (healthcheck ping)                               |
@@ -41,7 +41,7 @@ personal_website/
 ├── website_project/      # Django project settings, URLs, WSGI/ASGI
 │   └── decorators.py     # Shared staff_member_required_or_404
 ├── website_app/          # Main app — blog, pages, media, error handlers
-│   ├── models.py         # Post and MediaFile models (S3-aware)
+│   ├── models.py         # Post and MediaFile models
 │   ├── views.py          # Home, blog, projects, contact, healthcheck
 │   ├── templates/        # HTML templates (base, pages, error pages)
 │   └── static/           # CSS, JS, images, fonts, sounds
@@ -101,11 +101,6 @@ personal_website/
    | `ALLOWED_HOSTS`              | Comma-separated hostnames            |
    | `DJANGO_ADMIN_URL`           | Custom admin URL path (security)     |
    | `DATABASE_URL`               | PostgreSQL connection string (optional — defaults to SQLite) |
-   | `USE_S3`                     | `True` to enable AWS S3 media storage |
-   | `AWS_ACCESS_KEY_ID`          | AWS credentials (if `USE_S3=True`)   |
-   | `AWS_SECRET_ACCESS_KEY`      | AWS credentials (if `USE_S3=True`)   |
-   | `AWS_STORAGE_BUCKET_NAME`    | S3 bucket name                       |
-   | `AWS_S3_REGION_NAME`         | S3 region                            |
 
 5. Run migrations and start the dev server:
    ```bash

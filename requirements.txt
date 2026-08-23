@@ -1,10 +1,8 @@
 # Direct production dependencies only. Transitive dependencies (asgiref,
-# boto3/botocore, sqlparse, etc.) are resolved by pip and not pinned here —
-# see requirements-dev.txt for local/dev-only tooling on top of this file.
+# sqlparse, etc.) are resolved by pip and not pinned here — see
+# requirements-dev.txt for local/dev-only tooling on top of this file.
 Django==5.2.17
-boto3==1.42.88
 dj-database-url==2.3.0
-django-storages==1.14.6
 django-tinymce==4.1.0
 gunicorn==23.0.0
 psycopg2-binary==2.9.10
