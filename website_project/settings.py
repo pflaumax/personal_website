@@ -166,8 +166,14 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
 STATIC_URL = "/static/"
-STATICFILES_DIRS = [os.path.join(BASE_DIR, "website_app/static")]
 STATIC_ROOT = BASE_DIR / "staticfiles"
+
+# No STATICFILES_DIRS on purpose. The only static files are website_app's, and
+# AppDirectoriesFinder already picks up <app>/static/ for every app in
+# INSTALLED_APPS. Listing website_app/static here as well made every finder
+# return the same file twice, so collectstatic reported "Found another file
+# with the destination path ..." for each one. Add this back only for static
+# files that live outside an app.
 
 
 # Default primary key field type
