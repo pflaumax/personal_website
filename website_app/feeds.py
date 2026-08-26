@@ -36,6 +36,7 @@ class LatestPostsFeed(Feed):
 
     # Enough to fill a reader without turning the feed into the whole archive.
     LIMIT = 20
+
     def items(self):
         return Post.objects.all()[: self.LIMIT]
 

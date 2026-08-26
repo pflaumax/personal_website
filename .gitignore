@@ -93,6 +93,10 @@ media_for_blogposts/
 /deployment/
 
 .mypy_cache/
+# Ruff writes its own .gitignore inside the cache, so this is belt and braces —
+# but .mypy_cache/ and .pytest_cache/ are listed on the same reasoning and the
+# entry costs nothing if that behaviour ever changes.
+.ruff_cache/
 /db_backup/
 
 # Database dumps anywhere in the tree. This repo is public and a dump carries

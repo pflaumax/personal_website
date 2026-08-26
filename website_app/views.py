@@ -5,6 +5,7 @@ from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 from django.utils.safestring import mark_safe
 from django.views.decorators.csrf import csrf_exempt
+
 from website_project.decorators import staff_member_required_or_404
 
 from .models import MediaFile, Post
@@ -106,7 +107,9 @@ def contact(request):
     """Show contact page."""
     context = {
         "page_title": "Contact",
-        "page_description": "Get in touch with Max Pflaum — email, LinkedIn and GitHub.",
+        "page_description": (
+            "Get in touch with Max Pflaum — email, LinkedIn and GitHub."
+        ),
     }
     return render(request, "website_app/contact.html", context)
 

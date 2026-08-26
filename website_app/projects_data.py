@@ -40,7 +40,15 @@ PROJECTS = (
             "personal website, and blocked queries from Pi-hole on a Raspberry "
             "Pi."
         ),
-        "stack": ("Python", "MicroPython", "REST API", "GNU/Linux", "Git", "ESP32", "Raspberry Pi"),
+        "stack": (
+            "Python",
+            "MicroPython",
+            "REST API",
+            "GNU/Linux",
+            "Git",
+            "ESP32",
+            "Raspberry Pi",
+        ),
     },
     {
         "title": "FastAPI TODO List",
@@ -73,6 +81,14 @@ PROJECTS = (
             "exposes endpoints for predicting task priorities. Model is trained "
             "on a CSV dataset."
         ),
-        "stack": ("Python", "FastAPI", "ML", "Data Processing", "Pandas", "Scikit Learn", "Git"),
+        "stack": (
+            "Python",
+            "FastAPI",
+            "ML",
+            "Data Processing",
+            "Pandas",
+            "Scikit Learn",
+            "Git",
+        ),
     },
 )

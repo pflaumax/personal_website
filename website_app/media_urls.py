@@ -16,7 +16,9 @@ LEGACY_S3_MEDIA_PREFIX = "https://pflaumax-media.s3.eu-north-1.amazonaws.com/med
 LOCAL_MEDIA_PREFIX = "/media/"
 
 
-def rewrite_content(content, legacy_prefix=LEGACY_S3_MEDIA_PREFIX, media_prefix=LOCAL_MEDIA_PREFIX):
+def rewrite_content(
+    content, legacy_prefix=LEGACY_S3_MEDIA_PREFIX, media_prefix=LOCAL_MEDIA_PREFIX
+):
     """
     Return (new_content, replacements_made).
 
