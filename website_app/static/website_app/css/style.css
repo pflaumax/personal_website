@@ -52,22 +52,29 @@
 :root {
   color-scheme: light;
 
-  --bg: #f5f5f0;
-  --surface-2: #ebebe3;
-  --text: #1a1a17;
-  --muted: #6b6b63;
-  --rule: #dcdcd2;
-  --rule-soft: #e8e8e0;
+  /* Aged paper, not the old off-white. --bg is the base the grain multiplies
+     into, so it sits a touch lighter than the colour you actually see: the
+     rendered ground is about #f2ecdc. Everything neutral is warmed to match —
+     a cool grey rule on a cream ground reads as dirt rather than as a line. */
+  --bg: #fbf5e5;
+  --surface-2: #efe7d2;
+  --text: #211f18;
+  --muted: #696250;
+  --rule: #d8ccb0;
+  --rule-soft: #e3d8c0;
 
   /* The green ramp. --mark is the highlighter band behind links: it is the
    * old hsla(145,75%,69%,.507) resolved against the paper, so light mode is
    * unchanged — it just stops being transparent, which is what made it go
    * muddy the moment a dark ground existed. */
-  --accent: #1f5133;
-  --mark: #b2eec9;
-  --mark-hi: #8fe3ae;
+  /* The greens shifted with the paper. Mint over cream turns slightly acid,
+     so the whole ramp moves a few degrees toward the yellow the ground is
+     already carrying — it stays the same green, on this paper. */
+  --accent: #23543a;
+  --mark: #b9e3bd;
+  --mark-hi: #97d69f;
   --mark-depth: 5px;
-  --selection: #8fe3ae;
+  --selection: #97d69f;
   --live: #3fbf6f;
 
   /* --mark is the highlighter band under a link; --fill is a filled surface
@@ -75,14 +82,14 @@
    * jobs, which is why they were ever the same token. On a dark ground they
    * pull apart: the band has to clear the background to stay visible, while a
    * filled block at that strength reads as a sticker stuck on the page. */
-  --fill: #b2eec9;
-  --fill-hi: #8fe3ae;
-  --fill-line: #8fe3ae;
-  --on-fill: #1a1a17;
+  --fill: #b9e3bd;
+  --fill-hi: #97d69f;
+  --fill-line: #97d69f;
+  --on-fill: #211f18;
   /* Ink for text sitting on a *pasted* highlight. Deliberately absent from both
      dark blocks: the inline background TinyMCE writes into a post body never
      changes with the theme, so the ink on top must not either. */
-  --on-highlight: #1a1a17;
+  --on-highlight: #211f18;
 
   /* Paper grain. Two fields rather than one, because the blend modes are not
      symmetrical: multiply on paper only ever darkens, so it can take a strong
@@ -99,11 +106,11 @@
      noise is screened onto, and it is much darker than the result. Anything
      that has to match the page — an outlined pixel element's fill — takes this,
      never --bg, or it reads as a dark sticker stuck on the page. */
-  --px-ground: var(--bg);
-  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='linear' slope='0.34'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23g)'/%3E%3C/svg%3E");
+  --px-ground: #e8e3d4;
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='linear' slope='0.55'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23g)'/%3E%3C/svg%3E");
   --grain-blend: multiply;
 
-  --code-bg: #eeeee6;
+  --code-bg: #f0e9d6;
 
   /* Last of the legacy aliases. `--text-muted` still has consumers scattered
    * through the page sections; the rest were retired as their rules were
@@ -871,57 +878,23 @@ a:hover {
   margin: 1.5rem 0;
 }
 
-/* Duotone, on the images in a post body.
+/* Screenshots are evidence, not mood.
  *
- * The screenshots in these posts come from a dozen different applications and
- * fight each other on colour. Flattening them to two of the site's own colours
- * makes a page of mismatched captures read as one commissioned set — the
- * treatment magazines use, here for the cost of one filter and no second file.
+ * This started as a duotone, flattening every image onto two of the site's own
+ * colours. It looked good and it was wrong: the images in these posts exist to
+ * show what something *actually looks like* — the caption under one of them
+ * reads "VS Code Dracula theme with Monaspace Neon font", and a duotone
+ * destroys precisely the thing that caption points at. Restoring the real
+ * colour on hover only papered over it: a tinted image carries no affordance
+ * saying "hover me", so nobody would have found it, and touch screens have no
+ * hover at all — which meant phones and laptops were shown different sites.
  *
- * A filter cannot read a custom property, so there are two of them and the
- * theme picks one. Routing it through --duotone rather than restating the
- * filter per theme keeps the :hover rule at a specificity that can win: a
- * `:root[data-theme] .post-content img` rule would otherwise outrank
- * `.post-content img:hover` and the reveal would silently stop working.
- *
- * Hover returns the real image, because a duotoned screenshot is decoration
- * and the reader sometimes needs the evidence. Touch devices have no hover, so
- * they are given the real thing outright rather than a picture they cannot
- * un-tint. */
-.post-content {
-  --duotone: url("#duotone-light");
-}
-
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .post-content {
-    --duotone: url("#duotone-dark");
-  }
-}
-
-:root[data-theme="dark"] .post-content {
-  --duotone: url("#duotone-dark");
-}
-
+ * The problem underneath was real though, and the aged paper made it worse:
+ * screenshots carry white UI chrome, and white punches holes in a cream ground.
+ * So knock the white back toward the paper and leave everything else alone. No
+ * hover, no second state, nothing to discover, and Dracula stays Dracula. */
 .post-content img {
-  filter: var(--duotone);
-  transition: filter 240ms ease;
-}
-
-.post-content img:hover {
-  filter: none;
-}
-
-@media (hover: none) {
-  .post-content img,
-  .post-content img:hover {
-    filter: none;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .post-content img {
-    transition: none;
-  }
+  filter: sepia(0.18) saturate(0.92) brightness(0.98);
 }
 
 .post-content figure {
