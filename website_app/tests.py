@@ -243,6 +243,15 @@ class HomeLatestProjectsTests(TestCase):
         for project in PROJECTS:
             self.assertContains(response, project["title"])
 
+    def test_projects_page_says_where_the_titles_go(self):
+        """
+        The titles are external links to GitHub and look like plain headings
+        until hovered, so the list says so once at the top.
+        """
+        response = self.client.get(reverse("website_app:projects"))
+
+        self.assertContains(response, "Titles link straight to GitHub")
+
     def test_the_latest_list_draws_one_rule_above_it_not_two(self):
         """
         .latest-row:first-child already carries a border-top; a section-rule

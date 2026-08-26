@@ -344,6 +344,12 @@ h2.section-title {
   font-size: 0.85rem;
 }
 
+/* An aside that explains rather than links. Muted, so it reads as a note about
+   the list instead of as another item in it. */
+.head-note {
+  color: var(--muted);
+}
+
 /* Variant where what rides along belongs *to* the heading rather than to the
    far end of the row — the feed icon beside "Posts". */
 .head-row-tight {
