@@ -94,11 +94,6 @@
      every hairline from 1.38:1 against the ground to 1.05:1. overlay darkens as
      much as it lifts, so the ground keeps its warmth and the rules survive
      while the texture gets properly coarse. Measured rather than guessed. */
-  /* The page colour as the eye sees it, after the grain has blended into --bg.
-     Outlined pixel elements fill with this, not with --bg: on the dark theme
-     the grain lifts the ground well clear of the base colour, and a chip filled
-     with the base reads as a dark sticker stuck on the page. */
-  --px-ground: var(--bg);
   --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='linear' slope='0.34'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23g)'/%3E%3C/svg%3E");
   --grain-blend: multiply;
 
@@ -175,8 +170,8 @@
     --surface-2: #2d2c24;
     --text: #eae5d4;
     --muted: #9d9886;
-    --rule: #56544b;
-    --rule-soft: #46443c;
+    --rule: #38362c;
+    --rule-soft: #2d2c24;
 
     --accent: #8fd4a8;
     --mark: #2f7a52;
@@ -191,9 +186,8 @@
 
     --code-bg: #29281f;
 
-    --px-ground: #3c3b36;
-    --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='linear' slope='0.34'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23g)'/%3E%3C/svg%3E");
-    --grain-blend: screen;
+    --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='linear' slope='0.4'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23g)'/%3E%3C/svg%3E");
+    --grain-blend: overlay;
 
     --weight-body: 255;
     --weight-medium: 460;
@@ -209,8 +203,8 @@
   --surface-2: #2d2c24;
   --text: #eae5d4;
   --muted: #9d9886;
-  --rule: #56544b;
-  --rule-soft: #46443c;
+  --rule: #38362c;
+  --rule-soft: #2d2c24;
 
   --accent: #8fd4a8;
   --mark: #2f7a52;
@@ -225,9 +219,8 @@
 
   --code-bg: #29281f;
 
-  --px-ground: #3c3b36;
-  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='linear' slope='0.34'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23g)'/%3E%3C/svg%3E");
-  --grain-blend: screen;
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='linear' slope='0.4'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23g)'/%3E%3C/svg%3E");
+  --grain-blend: overlay;
 
   --weight-body: 255;
   --weight-medium: 460;
@@ -417,7 +410,7 @@ a:hover {
   width: 28px;
   height: 28px;
   padding: 0;
-  --px-fill: var(--px-ground);
+  --px-fill: var(--bg);
   --px-line: var(--rule);
   color: var(--muted);
   cursor: pointer;
@@ -1130,7 +1123,7 @@ a:hover {
   border: 0;
   /* Opaque, because it sits over moving text. An outlined pixel element only
      works on the page ground for exactly this reason — see the note above 10b. */
-  --px-fill: var(--px-ground);
+  --px-fill: var(--bg);
   --px-line: var(--rule);
   opacity: 0;
   visibility: hidden;
@@ -1202,7 +1195,7 @@ a:hover {
 
 .tech-badge {
   padding: 0.05rem 0.4rem;
-  --px-fill: var(--px-ground);
+  --px-fill: var(--bg);
   --px-line: var(--rule);
   color: var(--text-muted);
   font-size: 0.76rem;
@@ -1405,7 +1398,7 @@ a:hover {
 
 .timer-button {
   padding: 0.75rem 1.5rem;
-  --px-fill: var(--px-ground);
+  --px-fill: var(--bg);
   --px-line: var(--rule);
   color: var(--text);
   font-family: inherit;

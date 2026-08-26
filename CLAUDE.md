@@ -213,20 +213,14 @@ generates Perlin noise across the entire viewport and regenerates it on resize. 
 fields**, `--grain` light and dark, because the blend modes are not symmetrical. `multiply` only
 darkens, so paper takes a strong alpha. On the dark ground `screen` only ever *lifts*: at any
 strength that made the grain visible it washed `#21201a` out to a flat grey and dragged the ground
-up to meet `--rule` (`#38362c`), so every hairline on the site disappeared. The dark field uses `screen` at the same
-strength, which is a **palette change, not a texture change**, and three tokens travel with it:
+up to meet `--rule` (`#38362c`), so every hairline on the site disappeared. The dark field uses
+**`overlay`**, which darkens as much as it lifts — the ground lands on `#24231c` against a
+`#21201a` token and the rules survive at 1.30:1 against the designed 1.38.
 
-- the apparent ground lifts from `#21201a` to about `#3c3b36`;
-- `--rule` `#38362c` → `#56544b` and `--rule-soft` `#2d2c24` → `#46443c`, because the old values
-  were within a level or two of the lifted ground and every hairline on the site vanished;
-- `--px-ground` exists for the third one. Outlined pixel elements fill with `var(--bg)`, which is
-  the colour *under* the grain, so on the lifted ground the theme toggle read as a dark sticker
-  stuck on the page. They now fill with `--px-ground` — the page colour as the eye sees it — which
-  is `var(--bg)` in light and a literal in dark.
-
-**Turning the dark grain up or down means revisiting all three.** The pixel fill is still a flat
-colour and cannot carry the body's noise, so a chip is always a slightly smoother patch than its
-surround; at 1:1 that reads as a material difference rather than a mistake.
+A coarser dark grain is possible but it is a **palette change, not a texture change**: `screen`
+puts the ground at `#3c3b36`, and both `--rule` and `--rule-soft` then have to be re-tuned
+(measured: `#56544b` reads clearly there, `#38362c` does not). Do not turn up the dark grain
+without doing that too.
 
 Duotone runs on `.post-content img`, mapping the screenshots onto two of the site's own colours so
 a page of captures from a dozen applications reads as one set. A filter cannot read a custom
