@@ -210,9 +210,17 @@ The grain is a data-URI noise field in `body`'s *background*, blended with `back
 composited page on every scrolled frame; blending inside one element's own background happens
 once. The tile is a fixed `200x200` with `stitchTiles="stitch"`: without a size the browser
 generates Perlin noise across the entire viewport and regenerates it on resize. There are **two
-fields**, `--grain` light and dark, because the blend modes are not symmetrical — `multiply` only
-darkens and takes a strong alpha, while `screen` lifts the whole surface and at the light theme's
-strength washed the warm ground out to flat grey. The dark field is a fifth of the strength.
+fields**, `--grain` light and dark, because the blend modes are not symmetrical. `multiply` only
+darkens, so paper takes a strong alpha. On the dark ground `screen` only ever *lifts*: at any
+strength that made the grain visible it washed `#21201a` out to a flat grey and dragged the ground
+up to meet `--rule` (`#38362c`), so every hairline on the site disappeared. The dark field uses
+**`overlay`**, which darkens as much as it lifts — the ground lands on `#24231c` against a
+`#21201a` token and the rules survive at 1.30:1 against the designed 1.38.
+
+A coarser dark grain is possible but it is a **palette change, not a texture change**: `screen`
+puts the ground at `#3c3b36`, and both `--rule` and `--rule-soft` then have to be re-tuned
+(measured: `#56544b` reads clearly there, `#38362c` does not). Do not turn up the dark grain
+without doing that too.
 
 Duotone runs on `.post-content img`, mapping the screenshots onto two of the site's own colours so
 a page of captures from a dozen applications reads as one set. A filter cannot read a custom
