@@ -84,6 +84,14 @@
      changes with the theme, so the ink on top must not either. */
   --on-highlight: #1a1a17;
 
+  /* Paper grain. Two fields rather than one, because the blend modes are not
+     symmetrical: multiply on paper only ever darkens, so it can take a strong
+     alpha, while screen on the dark ground lifts the whole surface — at the
+     light theme's strength it washed the warm ink-brown out to a flat grey.
+     The dark field is a fifth of the strength for the same perceived tooth. */
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='linear' slope='0.34'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23g)'/%3E%3C/svg%3E");
+  --grain-blend: multiply;
+
   --code-bg: #eeeee6;
 
   /* Last of the legacy aliases. `--text-muted` still has consumers scattered
@@ -844,6 +852,59 @@ a:hover {
   margin: 1.5rem 0;
 }
 
+/* Duotone, on the images in a post body.
+ *
+ * The screenshots in these posts come from a dozen different applications and
+ * fight each other on colour. Flattening them to two of the site's own colours
+ * makes a page of mismatched captures read as one commissioned set — the
+ * treatment magazines use, here for the cost of one filter and no second file.
+ *
+ * A filter cannot read a custom property, so there are two of them and the
+ * theme picks one. Routing it through --duotone rather than restating the
+ * filter per theme keeps the :hover rule at a specificity that can win: a
+ * `:root[data-theme] .post-content img` rule would otherwise outrank
+ * `.post-content img:hover` and the reveal would silently stop working.
+ *
+ * Hover returns the real image, because a duotoned screenshot is decoration
+ * and the reader sometimes needs the evidence. Touch devices have no hover, so
+ * they are given the real thing outright rather than a picture they cannot
+ * un-tint. */
+.post-content {
+  --duotone: url("#duotone-light");
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .post-content {
+    --duotone: url("#duotone-dark");
+  }
+}
+
+:root[data-theme="dark"] .post-content {
+  --duotone: url("#duotone-dark");
+}
+
+.post-content img {
+  filter: var(--duotone);
+  transition: filter 240ms ease;
+}
+
+.post-content img:hover {
+  filter: none;
+}
+
+@media (hover: none) {
+  .post-content img,
+  .post-content img:hover {
+    filter: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .post-content img {
+    transition: none;
+  }
+}
+
 .post-content figure {
   margin: 1.5rem 0;
 }
@@ -1552,6 +1613,35 @@ a:hover {
 
 .is-melted {
   filter: url(#melt);
+}
+
+/* 10d. Paper grain -------------------------------------------------------
+ * A generated noise field in the page background. No image file: the SVG is a
+ * data URI, so there is nothing to download and nothing for the manifest to
+ * hash.
+ *
+ * Two decisions here are about cost, and both are easy to undo by accident.
+ *
+ * The tile is a fixed 200x200 with stitchTiles="stitch". Without a size the
+ * browser generates Perlin noise across the whole viewport and regenerates it
+ * on every resize; with one it rasterises a small square once and repeats it,
+ * and stitch makes the edges match so the repeat is invisible.
+ *
+ * And it is a *background layer on body*, blended with background-blend-mode —
+ * not a fixed overlay using mix-blend-mode. An overlay would have to be blended
+ * against the whole composited page on every scrolled frame, which is exactly
+ * the kind of thing that stutters on a phone. Blending inside one element's own
+ * background happens once. It is also the more honest model: the tooth is in
+ * the sheet, and the ink sits on top of it.
+ *
+ * feFuncA compresses the noise's alpha — that is the strength dial, since a
+ * background layer has no opacity of its own. multiply darkens paper into
+ * tooth; screen lifts the dark ground into film grain. One asset, both themes.
+ * --------------------------------------------------------------------- */
+body {
+  background-image: var(--grain);
+  background-size: 200px 200px;
+  background-blend-mode: var(--grain-blend);
 }
 
 /* 11. Utility Classes */
