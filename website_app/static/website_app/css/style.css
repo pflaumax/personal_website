@@ -88,7 +88,12 @@
      symmetrical: multiply on paper only ever darkens, so it can take a strong
      alpha, while screen on the dark ground lifts the whole surface — at the
      light theme's strength it washed the warm ink-brown out to a flat grey.
-     The dark field is a fifth of the strength for the same perceived tooth. */
+     The dark field uses overlay, not screen. screen only ever lifts, so any
+     strength that made the grain visible also washed #21201a out to a flat grey
+     — and worse, dragged the ground up to meet --rule (#38362c), collapsing
+     every hairline from 1.38:1 against the ground to 1.05:1. overlay darkens as
+     much as it lifts, so the ground keeps its warmth and the rules survive
+     while the texture gets properly coarse. Measured rather than guessed. */
   --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='linear' slope='0.34'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23g)'/%3E%3C/svg%3E");
   --grain-blend: multiply;
 
@@ -181,6 +186,9 @@
 
     --code-bg: #29281f;
 
+    --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='linear' slope='0.4'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23g)'/%3E%3C/svg%3E");
+    --grain-blend: overlay;
+
     --weight-body: 255;
     --weight-medium: 460;
     --weight-strong: 560;
@@ -210,6 +218,9 @@
   --on-fill: #eae5d4;
 
   --code-bg: #29281f;
+
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='linear' slope='0.4'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23g)'/%3E%3C/svg%3E");
+  --grain-blend: overlay;
 
   --weight-body: 255;
   --weight-medium: 460;
