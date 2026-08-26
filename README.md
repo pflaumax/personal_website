@@ -7,9 +7,15 @@ A personal website built with Django, featuring a blog with a rich-text CMS, a t
 
 ## Features
 
-- **Blog** — Rich-text posts managed via TinyMCE in the Django admin. Posts use auto-generated unique slugs and support embedded images and audio.
+- **Blog** — Rich-text posts managed via TinyMCE in the Django admin. Posts use auto-generated unique slugs and support embedded images and audio. Each post carries a link back to the list, a share row (Bluesky, email, copy link) and a back-to-top control that only appears when the page is actually long enough to need one.
 
-- **Tools Page** — Client-side productivity apps (Todo List and Pomodoro Timer) built with vanilla JavaScript. Data persists in browser session storage — no backend required.
+- **RSS Feed** — `/feed/` via `django.contrib.syndication`, also advertised in `<head>` for reader auto-discovery. Served as `application/xml` rather than `application/rss+xml` so browsers render it instead of downloading a file.
+
+- **Light and Dark Themes** — Three states, not two: with no stored choice the site follows the OS, and an explicit choice is remembered and applied before first paint so the page never flashes the wrong theme. Font weights are tuned per theme — light strokes look heavier on a dark ground, so the dark set steps down to keep the perceived weight equal.
+
+- **Typography** — A single 59 KB variable Monaspace subset (`wght 200..800` plus a `slnt` axis for real obliques). `font-synthesis: none` is set deliberately, so a missing weight shows rather than being faked by the browser.
+
+- **Tools Page** — Client-side productivity apps (Todo List and Pomodoro Timer) built with vanilla JavaScript. Data persists in browser session storage — no backend required. Deliberately not in the primary nav: it is linked from the project that contains it, because it is a demo rather than a product.
 
 - **Page View Analytics** — Custom middleware counts successful (2xx) GET requests per path, excluding static and media files, admin, API and editor routes. Stats are available to staff users in the Django admin, and via a staff-only JSON API at `/api/stats/` — the endpoint returns 404 to everyone else.
 
@@ -25,7 +31,9 @@ A personal website built with Django, featuring a blog with a rich-text CMS, a t
 | Layer       | Technology                                                    |
 |-------------|-----------------------------------------------------------------|
 | Backend     | Python 3.12+, Django 5.2, Gunicorn                             |
-| Frontend    | HTML, CSS, JavaScript (no framework)                           |
+| Frontend    | HTML, CSS, JavaScript (no framework, no build step, no npm)     |
+| Type        | Monaspace Neon (variable subset, self-hosted)                   |
+| Lint/Format | Ruff (`pyproject.toml`, dev-only)                               |
 | Database    | PostgreSQL (self-hosted on Raspberry Pi, prod), SQLite (dev)  |
 | Media       | Local filesystem, served by Nginx                              |
 | Rich Text   | TinyMCE (`django-tinymce`)                                     |
@@ -43,6 +51,9 @@ personal_website/
 ├── website_app/          # Main app — blog, pages, media, error handlers
 │   ├── models.py         # Post and MediaFile models
 │   ├── views.py          # Home, blog, projects, contact, healthcheck
+│   ├── feeds.py          # RSS feed at /feed/
+│   ├── projects_data.py  # The project list — one source for /projects/ and home
+│   ├── media_urls.py     # Legacy S3 → local media URL rewriting
 │   ├── templates/        # HTML templates (base, pages, error pages)
 │   └── static/           # CSS, JS, images, fonts, sounds
 ├── tools/                # Tools app — Todo List & Pomodoro Timer
@@ -55,7 +66,8 @@ personal_website/
 ├── deployment/           # Raspberry Pi deployment guides & scripts
 ├── .github/workflows/    # GitHub Actions (healthcheck ping)
 ├── requirements.txt      # Production dependencies
-├── requirements-dev.txt  # + local dev tooling (debug toolbar, shell_plus)
+├── requirements-dev.txt  # + local dev tooling (debug toolbar, shell_plus, ruff)
+├── pyproject.toml        # Ruff configuration
 ├── manage.py
 └── .env.example
 ```
@@ -113,6 +125,34 @@ personal_website/
    python scripts/create_superuser.py
    ```
    Or set `DJANGO_SUPERUSER_*` variables in `.env` and run the script.
+
+
+### Editing static files
+
+WhiteNoise's manifest storage is used with `DEBUG=True` as well, so this is not optional in
+development: a new or edited file under `static/` returns a 500 (`Missing staticfiles manifest
+entry`) until `collectstatic` has run, and `runserver` caches the manifest at startup, so it keeps
+serving the old hashed name until it is restarted.
+
+```bash
+python manage.py collectstatic   # then restart the server
+```
+
+
+### Tests and linting
+
+```bash
+python manage.py test            # whole suite
+python manage.py test website_app
+
+ruff check .                     # E, F, I, UP
+ruff format .                    # double quotes, line length 88
+```
+
+Tests use `django.test.TestCase` and live in each app's `tests.py`. Coverage is concentrated on the
+things that break silently rather than loudly: slug generation, the analytics middleware's
+exclusion rules, `/api/stats/` authorization, the feed's content type and date handling, and
+per-page metadata.
 
 
 ## License
