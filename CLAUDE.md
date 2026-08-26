@@ -18,9 +18,22 @@ python manage.py test website_app       # one app
 python manage.py test stats.tests.SomeTestCase.test_method   # one test
 
 python scripts/create_superuser.py      # idempotent, reads DJANGO_SUPERUSER_* from .env
+
+ruff check .                            # lint  (E, F, I, UP)
+ruff check --fix .
+ruff format .                           # format (double quotes, line-length 88)
+ruff format --check .
 ```
 
-There is no lint/format/type-check config in the repo (no pyproject/setup.cfg/ruff/mypy.ini) and no test framework beyond Django's runner. Tests use `django.test.TestCase` and live in `website_app/tests.py`, `stats/tests.py`, and `tools/tests.py`. Coverage is concentrated on `Post.save()` slug generation, `PageViewMiddleware` exclusion rules, `/api/stats/` authorization, the RSS feed, and per-page metadata — the areas most likely to break silently.
+**Ruff is configured and the tree passes it — run it before committing Python.** The config is
+`[tool.ruff]` in `pyproject.toml` (`ruff==0.16.3`, dev-only, in `requirements-dev.txt`), which is
+easy to miss because it is the only thing in that file and there is no CI enforcing it. Migrations
+and `*.md` are excluded; `scripts/create_superuser.py` is exempt from `E402` because
+`django.setup()` has to run before its imports, and `website_project/settings.py` from `E501` for
+Django's own `AUTH_PASSWORD_VALIDATORS` dotted paths. Note that `ruff format` will not split a long
+string literal, so an `E501` inside one is always a manual wrap.
+
+There is no type-check config (no mypy.ini) and no test framework beyond Django's runner. Tests use `django.test.TestCase` and live in `website_app/tests.py`, `stats/tests.py`, and `tools/tests.py`. Coverage is concentrated on `Post.save()` slug generation, `PageViewMiddleware` exclusion rules, `/api/stats/` authorization, the RSS feed, and per-page metadata — the areas most likely to break silently.
 
 **In dev, `collectstatic` is not optional and neither is restarting the server.** WhiteNoise's manifest storage is used with `DEBUG=True` too, so a new or edited static file 500s (`Missing staticfiles manifest entry`) until `collectstatic` runs — and `runserver` caches the manifest in memory at startup, so it keeps serving the old hashed name until restarted. Editing CSS therefore means: edit → `collectstatic` → restart.
 

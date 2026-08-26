@@ -18,7 +18,9 @@ class Command(BaseCommand):
         parser.add_argument(
             "--prefix",
             default=LEGACY_S3_MEDIA_PREFIX,
-            help="Absolute media prefix to replace (default: the legacy S3 bucket URL).",
+            help=(
+                "Absolute media prefix to replace (default: the legacy S3 bucket URL)."
+            ),
         )
         parser.add_argument(
             "--replacement",
@@ -51,6 +53,4 @@ class Command(BaseCommand):
             self.stdout.write(f"  {slug}: {replacements} URL(s)")
 
         message = f"{verb} {total} URL(s) across {len(changed)} post(s)"
-        self.stdout.write(
-            message if dry_run else self.style.SUCCESS(message)
-        )
+        self.stdout.write(message if dry_run else self.style.SUCCESS(message))

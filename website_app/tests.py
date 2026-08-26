@@ -279,9 +279,10 @@ class PostPageFurnitureTests(TestCase):
         self.assertContains(response, "bsky.app/intent/compose")
         self.assertContains(response, "mailto:?")
         self.assertEqual(response.context["share_url"], absolute)
-        for value in response.context["share_bluesky_url"], response.context[
-            "share_email_url"
-        ]:
+        for value in (
+            response.context["share_bluesky_url"],
+            response.context["share_email_url"],
+        ):
             self.assertIn(quote(absolute, safe=""), value)
             self.assertIn(quote(self.post.title, safe=""), value)
 
@@ -377,7 +378,10 @@ class FeedTests(TestCase):
         self.post = Post.objects.create(
             title="A Feed Post",
             # A single-escaped entity, which is what TinyMCE actually stores.
-            content="<p>Body with a&nbsp;non-breaking space and <strong>markup</strong>.</p>",
+            content=(
+                "<p>Body with a&nbsp;non-breaking space and "
+                "<strong>markup</strong>.</p>"
+            ),
             owner=self.owner,
         )
 
