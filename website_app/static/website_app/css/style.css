@@ -79,6 +79,10 @@
   --fill-hi: #8fe3ae;
   --fill-line: #8fe3ae;
   --on-fill: #1a1a17;
+  /* Ink for text sitting on a *pasted* highlight. Deliberately absent from both
+     dark blocks: the inline background TinyMCE writes into a post body never
+     changes with the theme, so the ink on top must not either. */
+  --on-highlight: #1a1a17;
 
   --code-bg: #eeeee6;
 
@@ -868,6 +872,21 @@ a:hover {
 .post-content [style*="color:#fff"],
 .post-content [style*="color: #fff"] {
   color: inherit !important;
+}
+
+/* The same trap as above, on the other property. TinyMCE's highlighter writes an
+ * inline background-color, and those pale values were picked against a design
+ * that only had a light theme — the event-management post uses
+ * rgb(191, 237, 210), which is within a hair of --mark. The band stays pale on
+ * the dark ground while the text around it turned ivory, so whole headings
+ * disappear into their own highlight.
+ *
+ * The fix is not to strip the highlight: it is deliberate, and it happens to
+ * match the site's own link band. It is to put the ink back on top. Must come
+ * after the colour rules above, since a span can carry both and the later
+ * !important wins. */
+.post-content [style*="background-color"] {
+  color: var(--on-highlight) !important;
 }
 
 /* Chrome, not prose: same treatment as the nav — muted, no band until hover,
