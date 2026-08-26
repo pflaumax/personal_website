@@ -1178,6 +1178,14 @@ a:hover {
   font-size: 0.92rem;
 }
 
+/* Someone else wrote about this one. Small, but not muted: it is the only line
+   in the list a reader does not have to take on trust, so it keeps ink weight
+   while staying out of the description's way. */
+.project-press {
+  margin: 0 0 0.5rem;
+  font-size: 0.82rem;
+}
+
 .project-demo {
   margin: -0.25rem 0 0.65rem;
   font-size: 0.88rem;

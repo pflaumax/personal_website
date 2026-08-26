@@ -40,6 +40,19 @@ PROJECTS = (
             "personal website, and blocked queries from Pi-hole on a Raspberry "
             "Pi."
         ),
+        # Third-party write-ups. Both cover this one project, which is why they
+        # sit on it rather than in the home page bio — a claim about your work
+        # is worth most standing next to the work it is about.
+        "press": (
+            (
+                "XDA Developers",
+                "https://www.xda-developers.com/esp32-e-ink-display-dashboard/",
+            ),
+            (
+                "Hackaday",
+                "https://hackaday.com/2025/06/18/esp32-dashboard-is-a-great-way-to-stay-informed/",
+            ),
+        ),
         "stack": (
             "Python",
             "MicroPython",
