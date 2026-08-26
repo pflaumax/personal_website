@@ -225,7 +225,18 @@ The real admin lives at `settings.ADMIN_URL` from the env; `/admin/` is a decoy 
 
 To embed media in a post, the file must first exist as a `MediaFile` in admin: `TINYMCE_DEFAULT_CONFIG` points `image_list`/`media_list` at `/media-list/?type=image|audio` (the only two `MediaFile.MEDIA_TYPE_CHOICES`), served by the `media_list` view, gated with `staff_member_required_or_404` (`website_project/decorators.py`) rather than Django's own `staff_member_required` — the latter redirects anonymous users to the admin login page, leaking `settings.ADMIN_URL` via the `Location` header.
 
-**TinyMCE preserves inline colour, and pasted markup brings it.** A stored
+**TinyMCE preserves inline colour *and* inline background, and pasted markup brings both.**
+The background half was found by rendering the real production posts rather than the dev
+fixtures: `event-management-system` highlights its headings with
+`background-color: rgb(191, 237, 210)`, a pale mint picked when the site had only a light theme
+and within a hair of `--mark`. On the dark ground the band stays pale while the surrounding text
+turned ivory, so whole headings vanish into their own highlight. `.post-content
+[style*="background-color"]` puts ink back on top via `--on-highlight`, which is defined once in
+`:root` and **deliberately not redefined in either dark block** — the pasted background does not
+change with the theme, so the ink on it must not either. That rule has to sit *after* the inline
+colour rules below, because a span can carry both and the later `!important` wins.
+
+ A stored
 `color: rgb(0, 0, 0)` is black text on the dark ground. `.post-content` neutralises inline black
 and white with `color: inherit !important` — narrowly, so a deliberately coloured word still
 works; inline styles lose to nothing else. Pasted content also arrives with foreign wrappers
