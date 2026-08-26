@@ -42,7 +42,11 @@ staticfiles/
 *.swp
 *.swo
 .DS_Store
-.claude/settings.local.json
+# The whole directory, not just settings.local.json: it currently holds only
+# machine-local things (that file and RESUME.md). If a shared project config
+# ever lands here — .claude/settings.json, agents, skills — this needs
+# narrowing again so those can be tracked.
+.claude/
 
 # Distribution / packaging
 .Python
@@ -97,6 +101,11 @@ media_for_blogposts/
 # but .mypy_cache/ and .pytest_cache/ are listed on the same reasoning and the
 # entry costs nothing if that behaviour ever changes.
 .ruff_cache/
+
+# Working notes: a decision record and a to-do list, useful while the work is in
+# flight and noise in a public repo. The durable rules belong in CLAUDE.md and
+# the user-facing summary in README.md, both of which are tracked.
+NOTES-*.md
 /db_backup/
 
 # Database dumps anywhere in the tree. This repo is public and a dump carries

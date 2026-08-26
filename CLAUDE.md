@@ -58,8 +58,8 @@ no words on screen those names are all that stands between a screen reader and t
 targets are chosen, not arbitrary: nothing advertising-funded (a test asserts X, Telegram, Reddit
 and Facebook never appear), and copy link is what covers Signal, Matrix and every other chat
 without embedding any of them. **Mastodon is deliberately absent** — its `/share` path only works
-on the reader's own instance, so it needs either a third-party redirector or an instance prompt;
-see `NOTES-redesign.md` Step 11 before adding it. The two link URLs are built in
+on the reader's own instance, so it needs either a third-party redirector or an instance prompt —
+a dependency on someone else's domain, or a whole UI for one button. The two link URLs are built in
 `views._share_links`, not the template, so the encoding stays testable. The copy button ships with
 `hidden` set and `share.js` reveals it only where `navigator.clipboard.writeText` exists — a
 control that silently does nothing is worse than an absent one, and `clipboard` is undefined over
