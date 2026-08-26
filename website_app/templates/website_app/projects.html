@@ -4,12 +4,14 @@
 <section class="projects-section">
   {% comment %}Every project title is an external link to its repository, and
   nothing on the page said so — the titles look like ordinary headings until you
-  hover one. The note states it once for the whole list, which is cheaper than
-  marking six titles individually.{% endcomment %}
-  <div class="head-row">
-    <h2 class="section-title">Public Projects</h2>
-    <span class="head-aside head-note">Titles link straight to GitHub &#8599;</span>
-  </div>
+  hover one. Stated once for the whole list rather than marking six titles.
+
+  Under the heading, not beside it: a head-row aside is for a parallel *action*
+  (the feed link, "all projects"), and this is an explanation of the list below.
+  An explanation belongs in reading order immediately before the thing it
+  explains, and on the same left edge as everything else.{% endcomment %}
+  <h2 class="section-title projects-title">Public Projects</h2>
+  <p class="section-note">Titles link straight to GitHub &#8599;</p>
 
   <div class="projects-list">
     {% for project in projects %}
