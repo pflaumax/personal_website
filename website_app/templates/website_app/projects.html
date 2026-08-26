@@ -2,7 +2,14 @@
 {% block content %}
 
 <section class="projects-section">
-  <h2 class="section-title">Public Projects</h2>
+  {% comment %}Every project title is an external link to its repository, and
+  nothing on the page said so — the titles look like ordinary headings until you
+  hover one. The note states it once for the whole list, which is cheaper than
+  marking six titles individually.{% endcomment %}
+  <div class="head-row">
+    <h2 class="section-title">Public Projects</h2>
+    <span class="head-aside head-note">Titles link straight to GitHub &#8599;</span>
+  </div>
 
   <div class="projects-list">
     {% for project in projects %}
