@@ -344,10 +344,20 @@ h2.section-title {
   font-size: 0.85rem;
 }
 
-/* An aside that explains rather than links. Muted, so it reads as a note about
-   the list instead of as another item in it. */
-.head-note {
+/* A line under a section heading that explains what the section does. Smaller
+   than a head-aside and muted, so it reads as a caption rather than as content
+   — and it takes the heading's bottom margin, so the heading sits tight to it
+   and the pair reads as one block. */
+/* h2.section-title, so this needs the element too or it loses the cascade. */
+h2.projects-title {
+  margin-bottom: 0.4rem;
+}
+
+.section-note {
+  margin: 0 0 1.75rem;
   color: var(--muted);
+  font-size: 0.78rem;
+  letter-spacing: 0.01em;
 }
 
 /* Variant where what rides along belongs *to* the heading rather than to the
