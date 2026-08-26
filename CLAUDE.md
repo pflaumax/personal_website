@@ -203,32 +203,47 @@ the original calls it *glitch*, not melt. Three constraints:
 The SVG holder takes `visibility: hidden`, not `display: none`, which can stop the filter reference
 resolving. No state is stored, so navigating away always clears the effect.
 
-**Paper grain and duotone are SVG filters too, and both are cheap on purpose.**
+**The paper is aged, and both grounds carry grain.** The light palette is no longer an off-white:
+`--bg` is `#fbf5e5` and renders at about `#e8e3d4` once the grain multiplies into it — warmth
+(r−b) of 20 against the old 5. Every neutral was warmed to match, because a cool grey on a cream
+ground reads as dirt rather than as a line, and the green ramp moved a few degrees toward the
+paper's yellow because mint over cream goes acid. **The accent is now tied to the paper: change
+one and retune the other.**
 
 The grain is a data-URI noise field in `body`'s *background*, blended with `background-blend-mode`
 — not a fixed overlay using `mix-blend-mode`. An overlay has to be blended against the whole
 composited page on every scrolled frame; blending inside one element's own background happens
 once. The tile is a fixed `200x200` with `stitchTiles="stitch"`: without a size the browser
-generates Perlin noise across the entire viewport and regenerates it on resize. There are **two
-fields**, `--grain` light and dark, because the blend modes are not symmetrical. `multiply` only
-darkens, so paper takes a strong alpha. On the dark ground `screen` only ever *lifts*: at any
-strength that made the grain visible it washed `#21201a` out to a flat grey and dragged the ground
-up to meet `--rule` (`#38362c`), so every hairline on the site disappeared. The dark field uses
-**`overlay`**, which darkens as much as it lifts — the ground lands on `#24231c` against a
-`#21201a` token and the rules survive at 1.30:1 against the designed 1.38.
+generates Perlin noise across the entire viewport and regenerates it on resize.
 
-A coarser dark grain is possible but it is a **palette change, not a texture change**: `screen`
-puts the ground at `#3c3b36`, and both `--rule` and `--rule-soft` then have to be re-tuned
-(measured: `#56544b` reads clearly there, `#38362c` does not). Do not turn up the dark grain
-without doing that too.
+**The dial that works is the base colour, not the noise strength**, and this took three attempts to
+learn. A blend mode only pushes one way — `multiply` darkens, `screen` lifts — so turning the noise
+up drags the ground with it. On dark, strength alone put `#21201a` at `#3c3b36`, which met `--rule`
+and made every hairline on the site vanish. Give the noise headroom instead: dark `--bg` is
+`#0d0c08` and renders at `#23221e`, two levels off the palette's `#21201a`, so the rules never had
+to move. Light works the same way in the other direction, with `--bg` lighter than the ground you
+see.
 
-Duotone runs on `.post-content img`, mapping the screenshots onto two of the site's own colours so
-a page of captures from a dozen applications reads as one set. A filter cannot read a custom
-property, so there are two filters and the theme picks one — routed through `--duotone` rather
-than restated per theme, because a `:root[data-theme] .post-content img` rule would outrank
-`.post-content img:hover` and silently kill the reveal. **`@media (hover: none)` turns it off
-entirely**: on a touch screen there is no way to un-tint an image, so those readers get the real
-one.
+`overlay` and `soft-light` are dead ends for this. They compress toward the base, so on a dark
+ground they behave like `multiply` and on a light one like `screen` — measured σ of 1–2 either way,
+which is no texture at all.
+
+**On both themes `--bg` is now the base *under* the grain, not the colour of the page.**
+`--px-ground` is what the eye sees, and outlined pixel elements fill with that. Filling one with
+`--bg` puts a visibly darker sticker on the page — that is exactly how the theme toggle looked
+before this. Measured, in case a dial is ever touched again: dark ground `#23221e` at σ 17.7, text
+12.63:1, rules 1.31:1; light ground `#e8e3d4` at σ 16.4, text 12.85:1, muted 4.73:1, rules 1.24:1.
+Note the muted value — the *old* off-white palette was at 4.39:1, below AA, and nobody had
+measured it.
+
+**`.post-content img` gets a light warm knock-back, not a duotone.** It was a duotone, and that was
+a mistake worth recording: the images in these posts are evidence, not mood. One caption reads
+"VS Code Dracula theme with Monaspace Neon font", and a duotone destroys exactly what the caption
+points at. Revealing the original on hover did not save it — a tinted image carries no affordance
+saying "hover me", and touch screens have no hover, so phones and laptops were being shown
+different sites. The real problem was narrower and the aged paper made it worse: screenshots carry
+white UI chrome and white punches holes in a cream ground. `sepia(.18) saturate(.92)
+brightness(.98)` seats them in the paper and keeps every pixel of information.
 
 ### Storage: local disk only
 
