@@ -42,7 +42,7 @@
   is never inside the subtree it filters. visibility:hidden rather than display:none —
   the latter can stop the filter reference resolving in some browsers. Static: one
   feTurbulence, one feDisplacementMap, no animation anywhere.{% endcomment %}
-  {% if request.resolver_match.url_name == 'index' %}
+  {% if is_home %}
   <svg xmlns="http://www.w3.org/2000/svg" version="1.1" class="svg-filter" aria-hidden="true">
     <defs>
       <filter id="melt">
@@ -53,7 +53,7 @@
   </svg>
   {% endif %}
   <a class="skip-link" href="#content">Skip to content</a>
-  <div class="container">
+  <div class="container"{% if is_home %} data-melt-target{% endif %}>
     <header class="site-header">
       <div class="status-container">
         {% comment %}On the home page the wordmark links to the page you are already
@@ -63,7 +63,7 @@
         stays "Max Pflaum" because that is what the h1 says; the title carries what
         it does. Everywhere else it is an ordinary link home.{% endcomment %}
         <h1 class="logotype">
-          {% if request.resolver_match.url_name == 'index' %}
+          {% if is_home %}
           <button type="button" class="logotype-mark" data-melt-trigger
                   aria-pressed="false" title="Melt the page">
             <span>M</span><span>a</span><span>x</span> <span>P</span><span>f</span><span>l</span><span>a</span><span>u</span><span>m</span>
@@ -104,7 +104,7 @@
       {% endwith %}
     </header>
 
-    <main class="content" id="content" tabindex="-1" data-melt-target>
+    <main class="content" id="content" tabindex="-1">
       {% block content %}{% endblock content %}
     </main>
 

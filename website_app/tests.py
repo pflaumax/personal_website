@@ -265,8 +265,16 @@ class MeltEasterEggTests(TestCase):
 
         self.assertContains(response, 'id="melt"')
         self.assertContains(response, "data-melt-trigger")
-        self.assertContains(response, "data-melt-target")
         self.assertContains(response, "js/melt.")
+
+    def test_the_target_is_the_whole_container_not_just_main(self):
+        """
+        Header, main and footer melt together — half a melted page reads as a
+        rendering bug rather than a joke.
+        """
+        body = self.client.get(reverse("website_app:index")).content.decode()
+
+        self.assertIn('class="container" data-melt-target', body)
 
     def test_the_wordmark_is_a_button_on_home_and_a_link_everywhere_else(self):
         """
@@ -294,6 +302,7 @@ class MeltEasterEggTests(TestCase):
             response = self.client.get(url)
             self.assertNotContains(response, 'id="melt"')
             self.assertNotContains(response, "data-melt-trigger")
+            self.assertNotContains(response, "data-melt-target")
 
 
 class PostPageFurnitureTests(TestCase):

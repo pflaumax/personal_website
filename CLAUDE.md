@@ -181,14 +181,17 @@ explicit `z-index` above 0 so the `z-index: -1` pseudo-layers stay behind its la
 of the page scrolling underneath.
 
 **The glitch is home-page only, and the scope is load-bearing.** Clicking the wordmark toggles
-`.is-melted` on `<main>`, which applies a static SVG filter (`feTurbulence` → `feDisplacementMap`,
+`.is-melted` on `.container`, which applies a static SVG filter (`feTurbulence` → `feDisplacementMap`,
 `js/melt.js`, filter defined in `base.html`). Rebuilt from `github.com/henrik/fbergmanse`, where
 the original calls it *glitch*, not melt. Three constraints:
 
-- **Never widen it past `main`.** The header must stay readable — the theme toggle and the nav are
-  the way out. And a filtered ancestor turns `position: fixed` into absolute, so putting this on a
-  post page would drag `.back-to-top-float` along with the melting text instead of leaving it
-  pinned.
+- **The target is `.container` — header, main and footer together.** Half a melted page reads as a
+  rendering bug rather than a joke, and the original melts its own trigger too. Nothing gets
+  trapped: a CSS filter is paint-only, so hit testing still uses the real geometry and every
+  control stays clickable within a few pixels of where it appears.
+- **Keep it off every other page.** A filtered ancestor turns `position: fixed` into absolute, so
+  running this on a post page would drag `.back-to-top-float` along with the melting text instead
+  of leaving it pinned. `index()` passes `is_home`, which is the only switch.
 - **On home the wordmark is a `<button>`, not a link** (`.logotype-mark`), because on that page the
   link pointed at the page you were already on. A link that conditionally refuses to navigate would
   break middle-click and lie to assistive tech; a button is the honest element for "this does
