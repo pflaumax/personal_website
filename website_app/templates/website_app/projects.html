@@ -20,6 +20,12 @@
         <a href="{{ project.url }}" target="_blank" rel="noopener noreferrer">{{ project.title }}</a>
       </h3>
       <p class="project-description">{{ project.description }}</p>
+      {% if project.press %}
+      <p class="project-press">
+        Written up in
+        {% for name, url in project.press %}<a href="{{ url }}" target="_blank" rel="noopener noreferrer">{{ name }}</a>{% if not forloop.last %} and {% endif %}{% endfor %}
+      </p>
+      {% endif %}
       {% if project.demo_url %}
       <p class="project-demo">
         <a href="{{ project.demo_url }}">{{ project.demo_label }} &#8599;</a>

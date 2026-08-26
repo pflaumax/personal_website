@@ -243,6 +243,18 @@ class HomeLatestProjectsTests(TestCase):
         for project in PROJECTS:
             self.assertContains(response, project["title"])
 
+    def test_press_links_sit_on_the_project_they_are_about(self):
+        """
+        Both write-ups cover the ESP32 dashboard, so they belong on that entry
+        rather than in the home page bio — and they must not leak onto home,
+        which shows the first three projects.
+        """
+        projects = self.client.get(reverse("website_app:projects"))
+
+        self.assertContains(projects, "Written up in")
+        self.assertContains(projects, "xda-developers.com")
+        self.assertContains(projects, "hackaday.com")
+
     def test_projects_page_says_where_the_titles_go(self):
         """
         The titles are external links to GitHub and look like plain headings
