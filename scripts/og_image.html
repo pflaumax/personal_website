@@ -1,0 +1,67 @@
+<!-- Source for static/website_app/images/og-image.png.
+
+     Regenerate from the repo root, after changing the palette, the wordmark or
+     the sprite:
+
+       "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" \
+         --headless --disable-gpu --hide-scrollbars \
+         --window-size=1200,630 --virtual-time-budget=6000 \
+         --screenshot=website_app/static/website_app/images/og-image.png \
+         "file://$PWD/scripts/og_image.html"
+       python manage.py collectstatic --noinput
+
+     Built from the site's own materials rather than drawn separately — same
+     font file, same sprite, same paper and grain — so a link preview looks like
+     the page it points at. The sprite is base64 because a file:// mask-image
+     does not resolve in headless Chrome, and it is scaled 2x exactly: this is
+     pixel art and any fractional scale eats the single-pixel sparkles.
+
+     Keep it PNG. The grain is high-frequency noise, so JPEG is both larger
+     (302K at q88 against 271K) and softer on the type. -->
+<!doctype html><meta charset="utf-8">
+<style>
+@font-face{
+  font-family:'Monaspace';
+  src:url('../website_app/static/website_app/fonts/monaspace/MonaspaceNeonVar-subset.woff2') format('woff2');
+  font-weight:200 800;font-style:normal;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  width:1200px;height:630px;overflow:hidden;
+  background-color:#fbf5e5;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='linear' slope='0.55'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23g)'/%3E%3C/svg%3E");
+  background-size:200px 200px;background-blend-mode:multiply;
+  font-family:'Monaspace',monospace;color:#211f18;
+  display:flex;align-items:center;justify-content:space-between;
+  gap:56px;padding:0 78px;
+}
+.wordmark{
+  font-size:62px;font-weight:600;letter-spacing:0.32em;line-height:1.1;
+  margin-right:-0.32em;white-space:nowrap;
+}
+.rule{height:1px;background:#d8ccb0;margin:34px 0 30px}
+.line{font-size:29px;font-weight:280;line-height:1.5}
+.line b{font-weight:500}
+.mark{box-shadow:inset 0 -9px 0 #b9e3bd}
+.domain{
+  margin-top:36px;font-size:18px;font-weight:500;color:#696250;
+  letter-spacing:0.18em;text-transform:uppercase;
+}
+/* The site's mask trick, so the sprite takes the ink colour rather than the
+   near-white it was drawn in. Integer scale only: this is pixel art and 3x
+   keeps every single-pixel sparkle intact. */
+.sprite{
+  width:286px;height:288px;flex:none;background-color:#211f18;
+  -webkit-mask-image:url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAI8AAACQCAYAAAAx4zjdAAACeklEQVR42u3dQU7FMAwFwBhx/yubNVIXn9KkjjOzBz7w5FhOm0RmjoWuflgMdvHr//fl78FdwoPwsN734h5Hf7O3UHmwbCE8CA8aZgNAVB6EB+FBz2MAiMqD8CA8CA/HNcz5191UUHkQHoSHBkPCsOk5DEpVHoQH4eHMjVH9zWfzsKN6Q5UH4UF4EB40zAZ7qDwID8KD8KBhbjXx/aT5jZvfJzTfKg/Cg/Cg5ymwo/1kD5IFfpe7u/PL+jCVB+FBeBAeThAXF5dUfJQy/aseb6xVHixbCA/D68avv1Iyc9CVjXqQVHmwbCE8IDycuasei3eiZzbHMz97qDxYthAeuN3zVNgYzYm9UkwctOXEXqncWZEqD8KD8CA8GBKOlodO+twqD8KD8KDnGc3eHMiN33i4+9m9boxlC+EB4cFNf1R41UflwbKF8GBI+NqwLycO30bBM6Vf/UwqD5YthAfhQcNc55ydePCq6rFJU53Vf57Kg2UL4aFhzxONzg2MRmc8z7yYJVQeLFsID8ID/xsSPnUWzi5PJFYcJt5tfEPlwbKF8KDnqX9J2EsDSBfGqTwID8KD8KBhBq8bY9lCeNDzjHWbi7HwQpAKX1fx6UJPEmLZQngQHvhnw5wb7KrffXLxya8bXS9TUXmwbCE8GBKOt272Pe1Jwif7sLAximUL4UF44KJJysyZzWIsHvblYReSrB5mOsQbyxbCg/BwZMOcjQ5l7HxYZRY45FLlwbKF8GBIWOPMnmz8Kky5v6/Kg2UL4WG4uKTybCQ2vXQt3G6MZQuEB+HBmYSVh4TRqBl2Pg+WLYQHPc8+6/TqswxH88vobIxi2UJ4EB648AOBtHtAU7F8wQAAAABJRU5ErkJggg==');
+  mask-image:url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAI8AAACQCAYAAAAx4zjdAAACeklEQVR42u3dQU7FMAwFwBhx/yubNVIXn9KkjjOzBz7w5FhOm0RmjoWuflgMdvHr//fl78FdwoPwsN734h5Hf7O3UHmwbCE8CA8aZgNAVB6EB+FBz2MAiMqD8CA8CA/HNcz5191UUHkQHoSHBkPCsOk5DEpVHoQH4eHMjVH9zWfzsKN6Q5UH4UF4EB40zAZ7qDwID8KD8KBhbjXx/aT5jZvfJzTfKg/Cg/Cg5ymwo/1kD5IFfpe7u/PL+jCVB+FBeBAeThAXF5dUfJQy/aseb6xVHixbCA/D68avv1Iyc9CVjXqQVHmwbCE8IDycuasei3eiZzbHMz97qDxYthAeuN3zVNgYzYm9UkwctOXEXqncWZEqD8KD8CA8GBKOlodO+twqD8KD8KDnGc3eHMiN33i4+9m9boxlC+EB4cFNf1R41UflwbKF8GBI+NqwLycO30bBM6Vf/UwqD5YthAfhQcNc55ydePCq6rFJU53Vf57Kg2UL4aFhzxONzg2MRmc8z7yYJVQeLFsID8ID/xsSPnUWzi5PJFYcJt5tfEPlwbKF8KDnqX9J2EsDSBfGqTwID8KD8KBhBq8bY9lCeNDzjHWbi7HwQpAKX1fx6UJPEmLZQngQHvhnw5wb7KrffXLxya8bXS9TUXmwbCE8GBKOt272Pe1Jwif7sLAximUL4UF44KJJysyZzWIsHvblYReSrB5mOsQbyxbCg/BwZMOcjQ5l7HxYZRY45FLlwbKF8GBIWOPMnmz8Kky5v6/Kg2UL4WG4uKTybCQ2vXQt3G6MZQuEB+HBmYSVh4TRqBl2Pg+WLYQHPc8+6/TqswxH88vobIxi2UJ4EB648AOBtHtAU7F8wQAAAABJRU5ErkJggg==');
+  -webkit-mask-size:contain;mask-size:contain;
+  -webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;
+}
+</style>
+<div>
+  <div class="wordmark">Max Pflaum</div>
+  <div class="rule"></div>
+  <div class="line">Software developer.<br><b>Python</b>, LLM systems,<br><span class="mark">and hardware that beeps</span>.</div>
+  <div class="domain">pflaumax.dev</div>
+</div>
+<div class="sprite"></div>

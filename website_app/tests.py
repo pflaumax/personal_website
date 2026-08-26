@@ -210,6 +210,19 @@ class PageMetadataTests(TestCase):
         )
         self.assertNotIn("utm_source", body)
 
+    def test_link_previews_get_an_absolute_image_and_a_large_card(self):
+        """
+        Scrapers fetch og:image out of band, with no page to resolve a relative
+        path against — a relative URL here silently yields no preview at all.
+        """
+        body = self.client.get(reverse("website_app:index")).content.decode()
+
+        self.assertIn('property="og:image" content="http://testserver/static/', body)
+        self.assertIn('name="twitter:image" content="http://testserver/static/', body)
+        self.assertIn('content="summary_large_image"', body)
+        self.assertIn('property="og:image:width" content="1200"', body)
+        self.assertNotIn('name="twitter:card" content="summary"', body)
+
     def test_error_pages_are_noindex_but_real_pages_are_not(self):
         missing = self.client.get("/definitely-not-a-page/").content.decode()
         home = self.client.get(reverse("website_app:index")).content.decode()
