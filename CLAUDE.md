@@ -203,6 +203,25 @@ the original calls it *glitch*, not melt. Three constraints:
 The SVG holder takes `visibility: hidden`, not `display: none`, which can stop the filter reference
 resolving. No state is stored, so navigating away always clears the effect.
 
+**Paper grain and duotone are SVG filters too, and both are cheap on purpose.**
+
+The grain is a data-URI noise field in `body`'s *background*, blended with `background-blend-mode`
+— not a fixed overlay using `mix-blend-mode`. An overlay has to be blended against the whole
+composited page on every scrolled frame; blending inside one element's own background happens
+once. The tile is a fixed `200x200` with `stitchTiles="stitch"`: without a size the browser
+generates Perlin noise across the entire viewport and regenerates it on resize. There are **two
+fields**, `--grain` light and dark, because the blend modes are not symmetrical — `multiply` only
+darkens and takes a strong alpha, while `screen` lifts the whole surface and at the light theme's
+strength washed the warm ground out to flat grey. The dark field is a fifth of the strength.
+
+Duotone runs on `.post-content img`, mapping the screenshots onto two of the site's own colours so
+a page of captures from a dozen applications reads as one set. A filter cannot read a custom
+property, so there are two filters and the theme picks one — routed through `--duotone` rather
+than restated per theme, because a `:root[data-theme] .post-content img` rule would outrank
+`.post-content img:hover` and silently kill the reveal. **`@media (hover: none)` turns it off
+entirely**: on a touch screen there is no way to un-tint an image, so those readers get the real
+one.
+
 ### Storage: local disk only
 
 `settings.py` defines a single `STORAGES` dict (Django 5.1+ API): `STORAGES["default"]` is always `FileSystemStorage` (`MEDIA_ROOT = BASE_DIR/media`, `MEDIA_URL = /media/`); `STORAGES["staticfiles"]` is WhiteNoise's `CompressedManifestStaticFilesStorage` (content-hashed filenames, gzip precompression — `collectstatic` must run before every deploy).
