@@ -108,6 +108,22 @@ effect a pixel-language site cannot borrow. Page-specific scripts go in `{% bloc
 a space survives verbatim into a mail client's body — `%20` is the only encoding that works for
 both a query string and a `mailto:`.
 
+**The link-preview card is generated from the site's own materials**, not drawn separately:
+`scripts/og_image.html` uses the real font file, the real sprite, the same paper and grain, and is
+screenshotted at 1200x630 by headless Chrome — the command is in the file's own header comment.
+Regenerate it after any change to the palette, the wordmark or the sprite, then `collectstatic`.
+Three things there are deliberate: the sprite is base64 rather than a path, because a `file://`
+`mask-image` does not resolve in headless Chrome; it is scaled **2x exactly**, because pixel art
+loses its single-pixel detail at any fractional scale; and it stays **PNG**, because the grain is
+high-frequency noise that makes JPEG both larger (302K at q88 against 271K) and softer on the type.
+The source lives in `scripts/`, never under `static/` — anything under `static/` is served
+publicly.
+
+`og:image` **must be absolute**. Scrapers fetch it out of band with no page to resolve a relative
+path against, so a relative URL yields no preview at all rather than a broken one. `base.html`
+derives `site_root` alongside `canonical_url` for this. The card is `summary_large_image`, not
+`summary`: the small card centre-crops 1200x630 to a square and throws the wordmark away.
+
 **Page titles and meta** travel in the **view context** (`page_title`, `page_description`, optional `page_type` / `page_noindex`), not in template blocks: a Django block can only be emitted once and the same string is needed in `<title>`, `og:title` and `twitter:title`. `base.html` derives `doc_title` / `doc_description` / `canonical_url` once with `{% firstof … as … %}`. Any new view that renders a page must pass these or it inherits the site defaults. The canonical URL is built from `request.path`, so query strings are excluded.
 
 **`tools`** — a single template-rendering view. **Not in the primary nav** (Home · Blog · Projects · Contact); it is linked from the *My Personal Website* entry on `/projects/` as a demo, because it is a demo, not a product. Its Todo List and Pomodoro Timer are entirely client-side (`static/website_app/js/tools.js`, browser session storage). The app has **no `models.py`**; migrations `0001`–`0003` create and then delete a `Task` model — that history is intentional, do not "fix" it by adding models back.

@@ -16,7 +16,8 @@
     because {% if %} does not push a new context.{% endcomment %}
     {% if page_title %}{% firstof page_title|add:" — Max Pflaum" as doc_title %}{% else %}{% firstof "Max Pflaum" as doc_title %}{% endif %}
     {% firstof page_description "Max Pflaum — software developer working in Python, Django and embedded systems." as doc_description %}
-    {% firstof request.scheme|add:"://"|add:request.get_host|add:request.path as canonical_url %}
+    {% firstof request.scheme|add:"://"|add:request.get_host as site_root %}
+    {% firstof site_root|add:request.path as canonical_url %}
 
     <title>{{ doc_title }}</title>
     <meta name="description" content="{{ doc_description }}" />
@@ -28,9 +29,19 @@
     <meta property="og:title" content="{{ doc_title }}" />
     <meta property="og:description" content="{{ doc_description }}" />
     <meta property="og:url" content="{{ canonical_url }}" />
-    <meta name="twitter:card" content="summary" />
+    {% comment %}One card for the whole site. It has to be an absolute URL — every
+    scraper fetches it out of band, with no page to resolve a relative path
+    against. summary_large_image rather than summary, because the artwork is
+    1200x630 and the small card would centre-crop it to a square and throw the
+    wordmark away.{% endcomment %}
+    <meta property="og:image" content="{{ site_root }}{% static 'website_app/images/og-image.png' %}" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Max Pflaum — software developer. Python, LLM systems, and hardware that beeps." />
+    <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="{{ doc_title }}" />
     <meta name="twitter:description" content="{{ doc_description }}" />
+    <meta name="twitter:image" content="{{ site_root }}{% static 'website_app/images/og-image.png' %}" />
 
     <link rel="stylesheet" href="{% static 'website_app/css/style.css' %}"/>
     <link rel="icon" type="image/x-icon" href="{% static 'website_app/images/favicon.ico' %}">
