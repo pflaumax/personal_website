@@ -440,12 +440,26 @@ a:hover {
   margin-right: calc(-1 * var(--logo-track));
 }
 
-.logotype a {
+.logotype a,
+.logotype .logotype-mark {
   box-shadow: none;
   /* The wordmark is the page's name, not a link to be marked up as one.
    * In light mode the forest accent passed for ink; on the dark ground the
    * mint accent shouted. It takes --text in both. */
   color: var(--text);
+}
+
+/* On home the wordmark is a <button> — the melt trigger — so every UA button
+   style has to be undone. It keeps the same letter-jump on hover, which is the
+   only hint that it does anything. */
+.logotype-mark {
+  display: inline-block;
+  padding: 0;
+  background: none;
+  border: 0;
+  font: inherit;
+  letter-spacing: inherit;
+  cursor: pointer;
 }
 
 .logotype span {
@@ -1483,6 +1497,36 @@ a:hover {
   .theme-toggle:active {
     transform: none;
   }
+}
+
+/* 10c. The glitch ---------------------------------------------------------
+ * Home page only, triggered by clicking the wordmark. Rebuilt from
+ * github.com/henrik/fbergmanse, where the original calls it "glitch".
+ *
+ * It is a *static* filter: one class, no animation, nothing to interrupt. That
+ * is why there is no prefers-reduced-motion rule here — nothing moves, and
+ * hiding an easter egg from people who set a motion flag would be patronising
+ * rather than protective. What the query does forbid is a transition on the
+ * filter, so do not add one: filters interpolate per frame and that *would* be
+ * motion.
+ *
+ * Scoped to main, never to .container: the header has to stay readable so the
+ * theme toggle and the nav are always a way out. It is also why this is home
+ * only — a filtered ancestor turns `position: fixed` into absolute, and post
+ * pages have a fixed back-to-top inside <main> that would be dragged along.
+ * ---------------------------------------------------------------------- */
+.svg-filter {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 1px;
+  height: 1px;
+  /* Not display: none, which can stop the filter reference resolving. */
+  visibility: hidden;
+}
+
+.is-melted {
+  filter: url(#melt);
 }
 
 /* 11. Utility Classes */
