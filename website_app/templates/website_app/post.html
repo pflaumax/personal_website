@@ -1,20 +1,87 @@
 {% extends "website_app/base.html" %}
+{% load static %}
 {% block content %}
 
+{% comment %}The way out of the page sits above the title, where the reading
+starts, not buried under the body. Nav-coloured rather than prose-coloured: it
+is chrome, not content.{% endcomment %}
+<a class="post-back" href="{% url 'website_app:blog' %}"><span aria-hidden="true">&#8592;</span> All posts</a>
+
 <article class="blog-post">
-  <header class="post-header">
+  <header class="post-header" data-scroll-sentinel>
     <h2 class="post-title">{{ post.title }}</h2>
     <div class="post-meta">
       <time datetime="{{ post.date_added|date:'Y-m-d' }}">{{ post.date_added|date:"F j, Y" }}</time>
     </div>
   </header>
-  
+
   <div class="post-content">
     {{ post.content|safe }}
   </div>
-  
+
+  {% comment %}Three targets, all of them open and none of them advertising-funded.
+  Copy link is the one that covers Signal, Matrix and every other chat at once
+  without embedding or endorsing any of them. Mastodon is deliberately absent:
+  its /share path only works on the reader's own instance, so it needs either a
+  third-party redirector or an instance prompt — see NOTES-redesign.md Step 11.
+
+  No visible label: the icons carry the row on their own, and a word in front of
+  them only made the group read as a clump. The name still exists for assistive
+  tech on the list itself, and each glyph carries a title so a pointer user gets
+  it too. The URLs are built in the view so the encoding stays testable; see
+  _share_links.{% endcomment %}
   <footer class="post-footer">
+    <div class="post-footer-row">
+      <div class="post-share">
+        <ul class="share-list" aria-label="Share this post">
+          <li>
+            <a class="share-link" href="{{ share_bluesky_url }}" target="_blank" rel="noopener noreferrer"
+               title="Bluesky" aria-label="Share on Bluesky">
+              {% comment %}The one filled mark in the row — a brand logo, which is
+              read as a logo rather than as a UI icon, and is set a size down so it
+              does not outweigh the two stroke icons beside it.{% endcomment %}
+              <svg class="share-icon share-icon-solid" width="17" height="17" viewBox="0 0 568 501" fill="currentColor" aria-hidden="true"><path d="M123.121 33.664C188.241 82.553 258.281 181.68 284 234.873c25.719-53.192 95.759-152.32 160.879-201.21C491.866-1.611 568-28.906 568 57.947c0 17.346-9.945 145.713-15.778 166.555-20.275 72.453-94.155 90.933-159.875 79.748C507.222 323.8 536.444 388.56 473.333 453.32c-119.86 122.992-172.272-30.859-185.702-70.281-2.462-7.227-3.614-10.608-3.631-7.733-.017-2.875-1.169.506-3.631 7.733-13.43 39.422-65.842 193.273-185.702 70.281-63.111-64.76-33.89-129.52 80.986-149.071-65.72 11.185-139.6-7.295-159.875-79.748C9.945 203.66 0 75.293 0 57.947 0-28.906 76.135-1.611 123.121 33.664Z"/></svg>
+            </a>
+          </li>
+          <li>
+            <a class="share-link" href="{{ share_email_url }}" title="Email" aria-label="Share by email">
+              <svg class="share-icon" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m2 7 10 6 10-6"/></svg>
+            </a>
+          </li>
+          <li>
+            {% comment %}hidden until share.js removes it: without the clipboard API
+            this button would be a control that does nothing, and a dead control is
+            worse than an absent one.{% endcomment %}
+            <button class="share-link" type="button" hidden data-copy-link data-url="{{ share_url }}"
+                    title="Copy link" aria-label="Copy link to this post">
+              <svg class="share-icon share-icon-link" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+              <svg class="share-icon share-icon-check" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m20 6-11 11-5-5"/></svg>
+            </button>
+          </li>
+        </ul>
+        {% comment %}The copy button's only visible feedback is the icon swap, which
+        a screen reader cannot see. role="status" announces it without moving focus.{% endcomment %}
+        <span class="visually-hidden" role="status" data-copy-status></span>
+      </div>
+
+      {% comment %}#top needs no anchor: with no element of that id the fragment
+      is defined to mean the top of the document, so this works with JS off.
+      back-to-top.js only upgrades the jump to a smooth scroll.{% endcomment %}
+      <a class="back-to-top" href="#top" data-back-to-top><span aria-hidden="true">&#8593;</span> Back to top</a>
+    </div>
   </footer>
 </article>
 
+{% comment %}The floating twin. It is a mouse convenience only — aria-hidden and
+out of the tab order — because the docked link above is the real control and a
+keyboard user reaches the top with Home. Duplicating it into the tab order
+would just add a second identical stop.{% endcomment %}
+<a class="back-to-top back-to-top-float" href="#top"
+   data-back-to-top data-back-to-top-float aria-hidden="true" tabindex="-1"><span aria-hidden="true">&#8593;</span> Back to top</a>
+
 {% endblock content %}
+
+{% block extra_scripts %}
+<script src="{% static 'website_app/js/back-to-top.js' %}" defer></script>
+<script src="{% static 'website_app/js/share.js' %}" defer></script>
+{% endblock extra_scripts %}

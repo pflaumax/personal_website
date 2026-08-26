@@ -3,6 +3,13 @@
 {% block content %}
 <section class="tools-section">
   <h2 class="section-title">Productivity Tools</h2>
+
+  {% comment %}This page is no longer in the primary nav, so it has to say where
+  it belongs to anyone who lands on it directly.{% endcomment %}
+  <p class="tools-context">
+    Part of <a href="{% url 'website_app:projects' %}">my personal website</a> —
+    both tools run entirely in the browser and reset when you close the tab.
+  </p>
   
   <div class="tools-grid">
     <!-- Todo List Tool -->

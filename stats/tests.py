@@ -151,6 +151,17 @@ class PageViewMiddlewareTests(TestCase):
 
         self.assertEqual(PageView.objects.get().path, "/panel-talk/")
 
+    def test_feed_is_not_tracked(self):
+        """
+        A reader polls /feed/ on a schedule forever; counting those would drown
+        the real page views.
+        """
+        middleware = self._middleware()
+
+        middleware(self.factory.get("/feed/"))
+
+        self.assertFalse(PageView.objects.filter(path="/feed/").exists())
+
     def test_tinymce_endpoints_are_not_tracked(self):
         middleware = self._middleware()
         for path in ("/tinymce/compressor/", "/tinymce/filebrowser/"):

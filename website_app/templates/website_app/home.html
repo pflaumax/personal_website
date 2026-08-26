@@ -1,52 +1,65 @@
 {% extends "website_app/base.html" %}
-{% load static %}
 {% block content %}
 
 <section class="home-section">
   <div class="about-me">
     <h2 class="section-title visually-hidden">About Me</h2>
-    
+
     <div class="profile-header">
       <h2>Hello!</h2>
     </div>
-    
-    <div class="bio-content">
-      <p class="intro">
-        I'm a software developer focused on building
-        efficient web applications, automation tools and scripts,
-        with Python as my primary language. I'm also exploring ML
-        and AI integration features into software.
-      </p>
-      <p class="personal">
-        Dedicated to open source, tech and hardware.
-        Embedded enthusiast and vintage gadgets lover.
-        I run Ubuntu, enjoy fine-tuning my workspace,
-        and automate my home.
-      </p>
-      <p class="background">Former maritime senior electrical officer.</p>
+
+    {% comment %}The greeting sits above the grid on purpose. With it inside, the
+    sprite lined up with the heading; starting the grid at the body copy lets
+    align-items: start line it up with the first line of text instead.
+    Collapses to one column below 768px.{% endcomment %}
+    <div class="intro-row">
+      <div class="bio-content">
+        <p class="intro">
+          I'm a software developer focused on building
+          efficient web applications, automation tools and scripts,
+          with Python as my primary language. I'm also exploring ML
+          and AI integration features into software.
+        </p>
+        <p class="personal">
+          Dedicated to open source, tech and hardware.
+          Embedded enthusiast and vintage gadgets lover.
+          I run Ubuntu, enjoy fine-tuning my workspace,
+          and automate my home.
+        </p>
+        <p class="background">Former maritime senior electrical officer.</p>
+      </div>
+
+      {% comment %}A single-colour sprite drawn as a CSS mask rather than an <img>:
+      the source is near-white on transparency, so as an image it would vanish on
+      paper. Masked, it takes a theme token and works in both.{% endcomment %}
+      <div class="sprite" role="img" aria-label="Pixel-art ghost holding a moon"></div>
     </div>
-    
-    <div class="skills-section">
-      <h3>Technical Skills</h3>
-      <ul class="skills-list">
-        <li>Python</li>
-        <li>Django</li>
-        <li>DRF</li>
-        <li>FastAPI</li>
-        <li>PostgreSQL</li>
-        <li>Pytest</li>
-        <li>Linux/Bash</li>
-        <li>Docker</li>
-        <li>Celery/Redis</li>
-        <li>ML/NLP</li>
-        <li>JavaScript</li>
-        <li>HTML/CSS</li>
-        <li>Git</li>
-        <li>Automation</li>
-        <li>Deployment</li>
-        <li>Embedded Systems</li>
-      </ul>
-    </div>
+
+    {% if latest_projects %}
+    <section class="latest-section">
+      <div class="head-row">
+        <h3 class="subsection-title">Latest projects</h3>
+        <span class="head-aside"><a href="{% url 'website_app:projects' %}">All projects &#8599;</a></span>
+      </div>
+
+      {% comment %}No rule under the heading: .latest-row:first-child already
+      draws one, and the two landed 22px apart as a doubled line. The list is
+      bounded by its own row borders, exactly like /blog/ and /projects/.{% endcomment %}
+      <div class="latest-list">
+        {% for project in latest_projects %}
+        <article class="latest-row">
+          <h4 class="latest-title">
+            <a href="{{ project.url }}" target="_blank" rel="noopener noreferrer">{{ project.title }}</a>
+          </h4>
+          {% comment %}First three only: the full stack belongs on /projects/, and six
+          items here push the title onto two lines.{% endcomment %}
+          <span class="latest-stack">{{ project.stack|slice:":3"|join:" · " }}</span>
+        </article>
+        {% endfor %}
+      </div>
+    </section>
+    {% endif %}
   </div>
 </section>
 {% endblock content %}

@@ -15,6 +15,9 @@ EXCLUDED_PATHS = {
     # JSON endpoint backing the TinyMCE media picker — an API call made from
     # the admin, not a page view.
     "/media-list/",
+    # RSS. A reader polls this on a schedule forever; counting it would drown
+    # the real page views.
+    "/feed/",
 }
 
 EXCLUDED_SUFFIXES = {

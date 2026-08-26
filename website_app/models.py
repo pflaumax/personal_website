@@ -1,7 +1,10 @@
+import html
 import logging
 
 from django.contrib.auth.models import User
 from django.db import models
+from django.urls import reverse
+from django.utils.html import strip_tags
 from django.utils.text import slugify
 from tinymce.models import HTMLField
 
@@ -77,6 +80,36 @@ class Post(models.Model):
     def __str__(self):
         """Return the title of the post."""
         return self.title
+
+    # Long enough for a feed summary; the meta-description variant trims harder.
+    EXCERPT_LENGTH = 320
+    META_DESCRIPTION_LENGTH = 155
+
+    def excerpt(self, length=None):
+        """Plain-text opening of the post.
+
+        strip_tags removes tags but leaves entities, so unescape once here —
+        otherwise a stored `&nbsp;` survives as literal text and whatever
+        renders it escapes the ampersand again, so readers see `&amp;nbsp;`.
+        """
+        limit = self.EXCERPT_LENGTH if length is None else length
+        text = " ".join(html.unescape(strip_tags(self.content)).split())
+        if len(text) <= limit:
+            return text
+        return text[:limit].rsplit(" ", 1)[0] + "…"
+
+    @property
+    def meta_description(self):
+        """Shorter excerpt, sized for a <meta name="description">."""
+        return self.excerpt(self.META_DESCRIPTION_LENGTH)
+
+    def get_absolute_url(self):
+        """Return the canonical URL for this post.
+
+        The syndication framework builds item links from this, and it is the
+        single place the post URL shape is written down.
+        """
+        return reverse("website_app:post", kwargs={"slug": self.slug})
 
     def save(self, *args, **kwargs):
         """
