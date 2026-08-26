@@ -33,6 +33,9 @@ def index(request):
         # The three most recent projects, sliced from the same tuple /projects/
         # renders — so the two pages can never drift apart.
         "latest_projects": PROJECTS[:3],
+        # Turns on the glitch easter egg in base.html. Home only — see the
+        # comments there for why the scope is not widened to other pages.
+        "is_home": True,
         "page_description": (
             "Max Pflaum — software developer building web applications, "
             "automation tools and scripts in Python. Embedded enthusiast, "

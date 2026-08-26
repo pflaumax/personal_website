@@ -1510,10 +1510,16 @@ a:hover {
  * filter, so do not add one: filters interpolate per frame and that *would* be
  * motion.
  *
- * Scoped to main, never to .container: the header has to stay readable so the
- * theme toggle and the nav are always a way out. It is also why this is home
- * only — a filtered ancestor turns `position: fixed` into absolute, and post
- * pages have a fixed back-to-top inside <main> that would be dragged along.
+ * Scoped to .container — everything: header, main, footer. Half a melted page
+ * looks like a rendering bug rather than a joke, and the original melts its own
+ * trigger too. Nothing is trapped by this: a CSS filter is paint-only, so hit
+ * testing still uses the real geometry and every control stays clickable within
+ * a few pixels of where it appears. Escape, a second click and any navigation
+ * are the three ways out.
+ *
+ * It stays home-only, and that part is not cosmetic: a filtered ancestor turns
+ * `position: fixed` into absolute, and post pages carry a fixed back-to-top
+ * inside <main> that would be dragged along with the melting text.
  * ---------------------------------------------------------------------- */
 .svg-filter {
   position: absolute;
