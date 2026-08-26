@@ -2,11 +2,19 @@
 {% block content %}
 
 <section class="blog-section">
-  <h2 class="section-title">Posts</h2>
+  {% comment %}The feed rides the heading itself rather than the far end of a
+  head-row: it belongs to "Posts", and as a glyph it costs no reading weight.
+  The label survives for screen readers via aria-label.{% endcomment %}
+  <div class="head-row head-row-tight">
+    <h2 class="section-title">Posts</h2>
+    <a class="rss-link" href="{% url 'website_app:feed' %}" aria-label="RSS feed" title="RSS feed">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 11a9 9 0 0 1 9 9"/><path d="M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1"/></svg>
+    </a>
+  </div>
   
   <div class="blog-list">
     {% for item in blog %}
-    <article class="blog-card">
+    <article class="blog-row">
       <h3 class="blog-title">
         <a href="{% url 'website_app:post' item.slug %}">{{ item.title }}</a>
       </h3>

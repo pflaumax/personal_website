@@ -2,6 +2,7 @@ from django.urls import path
 from django.views.generic import RedirectView
 
 from . import views
+from .feeds import LatestPostsFeed
 
 app_name = "website_app"
 urlpatterns = [
@@ -23,6 +24,9 @@ urlpatterns = [
     path("contact/", views.contact, name="contact"),
     # Show list of images added.
     path("media-list/", views.media_list, name="media_list"),
+    # RSS. Excluded from page-view stats in stats/middleware.py — every reader
+    # poll would otherwise inflate the counters.
+    path("feed/", LatestPostsFeed(), name="feed"),
     # Ping page
     path("healthcheck/", views.healthcheck, name="healthcheck"),
 ]

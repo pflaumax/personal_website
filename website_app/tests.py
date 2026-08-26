@@ -1,3 +1,5 @@
+from urllib.parse import quote
+
 from django.contrib.auth.models import User
 from django.core.management import call_command
 from django.test import RequestFactory, TestCase
@@ -6,6 +8,7 @@ from django.urls import reverse
 from . import views
 from .media_urls import LEGACY_S3_MEDIA_PREFIX, rewrite_content, rewrite_posts
 from .models import MediaFile, Post
+from .projects_data import PROJECTS
 
 
 class PublicPageSmokeTests(TestCase):
@@ -163,6 +166,251 @@ class PostSlugTests(TestCase):
         post.save()
 
         self.assertEqual(post.slug, original_slug)
+
+
+class PageMetadataTests(TestCase):
+    """
+    Every page used to ship the same hardcoded <title> and description, which
+    made every shared link preview identical.
+    """
+
+    def setUp(self):
+        self.owner = User.objects.create_user("metaauthor", password="pw")
+        self.post = Post.objects.create(
+            title="A Metadata Post",
+            content="<p>The opening sentence of the body.</p>",
+            owner=self.owner,
+        )
+
+    def test_home_uses_the_bare_site_name(self):
+        body = self.client.get(reverse("website_app:index")).content.decode()
+
+        self.assertIn("<title>Max Pflaum</title>", body)
+
+    def test_inner_page_title_is_prefixed(self):
+        body = self.client.get(reverse("website_app:projects")).content.decode()
+
+        self.assertIn("<title>Projects — Max Pflaum</title>", body)
+
+    def test_post_title_and_description_come_from_the_post(self):
+        body = self.client.get(self.post.get_absolute_url()).content.decode()
+
+        self.assertIn("<title>A Metadata Post — Max Pflaum</title>", body)
+        self.assertIn("The opening sentence of the body.", body)
+        self.assertIn('property="og:type" content="article"', body)
+
+    def test_canonical_url_has_no_query_string(self):
+        body = self.client.get(
+            self.post.get_absolute_url(), {"utm_source": "somewhere"}
+        ).content.decode()
+
+        self.assertIn(
+            f'<link rel="canonical" href="http://testserver{self.post.get_absolute_url()}">',
+            body,
+        )
+        self.assertNotIn("utm_source", body)
+
+    def test_error_pages_are_noindex_but_real_pages_are_not(self):
+        missing = self.client.get("/definitely-not-a-page/").content.decode()
+        home = self.client.get(reverse("website_app:index")).content.decode()
+
+        self.assertIn('name="robots" content="noindex"', missing)
+        self.assertNotIn("noindex", home)
+
+
+class HomeLatestProjectsTests(TestCase):
+    """
+    Home's "Latest projects" is a slice of the same tuple /projects/ renders,
+    not a second copy of the markup. These lock that: adding or reordering an
+    entry in projects_data.py has to move both pages together.
+    """
+
+    def test_home_shows_the_first_three_entries_of_the_tuple(self):
+        response = self.client.get(reverse("website_app:index"))
+
+        for project in PROJECTS[:3]:
+            self.assertContains(response, project["title"])
+
+    def test_home_shows_only_three(self):
+        response = self.client.get(reverse("website_app:index"))
+
+        for project in PROJECTS[3:]:
+            self.assertNotContains(response, project["title"])
+
+    def test_projects_page_shows_every_entry(self):
+        response = self.client.get(reverse("website_app:projects"))
+
+        for project in PROJECTS:
+            self.assertContains(response, project["title"])
+
+    def test_the_latest_list_draws_one_rule_above_it_not_two(self):
+        """
+        .latest-row:first-child already carries a border-top; a section-rule
+        <hr> above it landed 22px away and read as a doubled line.
+        """
+        response = self.client.get(reverse("website_app:index"))
+
+        self.assertNotContains(response, "section-rule")
+
+
+class PostPageFurnitureTests(TestCase):
+    """
+    The way out of a post and the ways to pass it on: the back link, the two
+    share targets and the pair of back-to-top controls.
+    """
+
+    def setUp(self):
+        self.owner = User.objects.create_user("shareauthor", password="pw")
+        self.post = Post.objects.create(
+            title="A Post To Share", content="<p>body</p>", owner=self.owner
+        )
+        self.url = reverse("website_app:post", args=[self.post.slug])
+
+    def test_post_links_back_to_the_list(self):
+        response = self.client.get(self.url)
+
+        self.assertContains(response, 'class="post-back"')
+        self.assertContains(response, f'href="{reverse("website_app:blog")}"')
+
+    def test_share_targets_carry_the_absolute_post_url(self):
+        response = self.client.get(self.url)
+        absolute = f"http://testserver{self.post.get_absolute_url()}"
+
+        self.assertContains(response, "bsky.app/intent/compose")
+        self.assertContains(response, "mailto:?")
+        self.assertEqual(response.context["share_url"], absolute)
+        for value in response.context["share_bluesky_url"], response.context[
+            "share_email_url"
+        ]:
+            self.assertIn(quote(absolute, safe=""), value)
+            self.assertIn(quote(self.post.title, safe=""), value)
+
+    def test_share_icons_carry_accessible_names(self):
+        """
+        Three glyphs and no visible words: with the label gone, these names are
+        the only thing standing between a screen reader and three empty links.
+        """
+        response = self.client.get(self.url)
+
+        self.assertContains(response, 'aria-label="Share this post"')
+        self.assertContains(response, 'aria-label="Share on Bluesky"')
+        self.assertContains(response, 'aria-label="Share by email"')
+        self.assertContains(response, 'aria-label="Copy link to this post"')
+        self.assertNotContains(response, "post-share-label")
+
+    def test_copy_link_button_ships_hidden_and_knows_the_url(self):
+        """
+        share.js reveals it only where the clipboard API exists. A control that
+        silently does nothing is worse than one that is not there.
+        """
+        response = self.client.get(self.url)
+        absolute = f"http://testserver{self.post.get_absolute_url()}"
+
+        self.assertContains(response, "data-copy-link")
+        self.assertContains(response, f'data-url="{absolute}"')
+        self.assertContains(response, "hidden data-copy-link")
+        self.assertContains(response, 'role="status" data-copy-status')
+
+    def test_no_advertising_funded_share_targets(self):
+        """The whole point of the list: X, Telegram, Reddit and Facebook are out."""
+        body = self.client.get(self.url).content.decode()
+
+        for host in "twitter.com", "x.com", "t.me", "telegram", "reddit", "facebook":
+            self.assertNotIn(host, body.lower())
+
+    def test_share_urls_encode_spaces_as_percent_twenty(self):
+        """
+        urlencode defaults to quote_plus, and a mail client pastes the body
+        verbatim — `+` for a space would reach the reader as a literal plus.
+        """
+        response = self.client.get(self.url)
+
+        for key in "share_bluesky_url", "share_email_url":
+            value = response.context[key]
+            self.assertIn("%20", value)
+            self.assertNotIn("+", value)
+
+    def test_back_to_top_is_docked_and_floating(self):
+        """
+        Two controls, one accessible name: the floating twin is a mouse
+        convenience, so it stays out of the tab order and out of the tree.
+        """
+        response = self.client.get(self.url)
+        body = response.content.decode()
+
+        self.assertEqual(body.count('href="#top"'), 2)
+        self.assertIn("data-back-to-top-float", body)
+        self.assertIn('aria-hidden="true" tabindex="-1"', body)
+        # Manifest storage hashes the filename, so match the stem only.
+        self.assertIn("js/back-to-top.", body)
+        self.assertIn("js/share.", body)
+
+    def test_the_list_page_has_no_share_or_back_furniture(self):
+        response = self.client.get(reverse("website_app:blog"))
+
+        self.assertNotContains(response, "post-share")
+        self.assertNotContains(response, "back-to-top")
+
+
+class BlogIndexFeedLinkTests(TestCase):
+    """The feed rides the "Posts" heading as a glyph, not as a word in a row."""
+
+    def test_feed_link_is_an_icon_with_an_accessible_name(self):
+        response = self.client.get(reverse("website_app:blog"))
+
+        self.assertContains(response, 'class="rss-link"')
+        self.assertContains(response, 'aria-label="RSS feed"')
+        self.assertContains(response, f'href="{reverse("website_app:feed")}"')
+        # The old text link lived in a head-aside at the far end of the row.
+        self.assertNotContains(response, "head-aside")
+
+
+class FeedTests(TestCase):
+    """
+    Covers the RSS feed. The interesting part is item_pubdate: Post.date_added
+    is a DateField, but pubDate needs an aware datetime, so a bare date here
+    either warns or serialises wrong.
+    """
+
+    def setUp(self):
+        self.owner = User.objects.create_user("feedauthor", password="pw")
+        self.post = Post.objects.create(
+            title="A Feed Post",
+            # A single-escaped entity, which is what TinyMCE actually stores.
+            content="<p>Body with a&nbsp;non-breaking space and <strong>markup</strong>.</p>",
+            owner=self.owner,
+        )
+
+    def test_feed_is_served_as_browsable_xml(self):
+        """
+        Not application/rss+xml: browsers have no renderer for it and download
+        the file instead of showing the feed.
+        """
+        response = self.client.get(reverse("website_app:feed"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("application/xml", response["Content-Type"])
+        self.assertNotIn("rss+xml", response["Content-Type"])
+
+    def test_feed_contains_post_with_absolute_link_and_pubdate(self):
+        body = self.client.get(reverse("website_app:feed")).content.decode()
+
+        self.assertIn("<title>A Feed Post</title>", body)
+        self.assertIn(f"http://testserver{self.post.get_absolute_url()}", body)
+        self.assertIn("<pubDate>", body)
+
+    def test_summary_is_plain_text_without_tags_or_entities(self):
+        body = self.client.get(reverse("website_app:feed")).content.decode()
+
+        self.assertNotIn("&lt;strong&gt;", body)
+        self.assertNotIn("&amp;nbsp;", body)
+        self.assertIn("Body with a non-breaking space and markup.", body)
+
+    def test_get_absolute_url_points_at_the_post(self):
+        self.assertEqual(
+            self.post.get_absolute_url(),
+            reverse("website_app:post", kwargs={"slug": self.post.slug}),
+        )
 
 
 class MediaFileSaveLoggingTests(TestCase):

@@ -1,102 +1,26 @@
 {% extends "website_app/base.html" %}
 {% block content %}
 
-<section class="projects-section" xmlns="http://www.w3.org/1999/html">
+<section class="projects-section">
   <h2 class="section-title">Public Projects</h2>
 
-  <div class="projects-grid">
-    <article class="project-card">
+  <div class="projects-list">
+    {% for project in projects %}
+    <article class="project-row">
       <h3 class="project-title">
-        <a href="https://github.com/pflaumax/personal-website" target="_blank" rel="noopener noreferrer">My Personal Website</a>
+        <a href="{{ project.url }}" target="_blank" rel="noopener noreferrer">{{ project.title }}</a>
       </h3>
-      <p class="project-description">Built with Django and Python, features a Tools page with a to-do list and Pomodoro timer (HTML/CSS/JS). It also includes a blog platform for personal posts and implements a fully responsive design for optimal viewing across all devices.</p>
-      <div class="project-tech">
-        <span class="tech-badge">Python</span>
-        <span class="tech-badge">Django</span>
-        <span class="tech-badge">JavaScript</span>
-        <span class="tech-badge">HTML/CSS</span>
-        <span class="tech-badge">GNU/Linux</span>
-        <span class="tech-badge">Git</span>
-      </div>
-    </article>
-
-    <article class="project-card">
-      <h3 class="project-title">
-        <a href="https://github.com/pflaumax/event_manager" target="_blank" rel="noopener noreferrer">Event Manager</a>
-      </h3>
-      <p class="project-description">A Django-based Event Management System with two roles: Event Creators and Visitors. It simulates a real-world platform for managing and attending events, featuring role-based access, and email-based registration via a custom user model.
+      <p class="project-description">{{ project.description }}</p>
+      {% if project.demo_url %}
+      <p class="project-demo">
+        <a href="{{ project.demo_url }}">{{ project.demo_label }} &#8599;</a>
       </p>
+      {% endif %}
       <div class="project-tech">
-        <span class="tech-badge">Python</span>
-        <span class="tech-badge">Django</span>
-        <span class="tech-badge">REST API</span>
-        <span class="tech-badge">PostgreSQL</span>
-        <span class="tech-badge">Docker</span>
-        <span class="tech-badge">Git</span>
+        {% for tech in project.stack %}<span class="tech-badge">{{ tech }}</span>{% endfor %}
       </div>
     </article>
-
-    <article class="project-card">
-      <h3 class="project-title">
-        <a href="https://github.com/pflaumax/esp32_dashboard" target="_blank" rel="noopener noreferrer">ESP32 Dashboard</a>
-      </h3>
-      <p class="project-description">A dashboard powered by the ESP32-WROOM and an E-paper display, showing the current date and time, weather conditions, views of my personal website, and blocked queries from Pi-hole on a Raspberry Pi.</p>
-      <div class="project-tech">
-        <span class="tech-badge">Python</span>
-        <span class="tech-badge">MicroPython</span>
-        <span class="tech-badge">REST API</span>
-        <span class="tech-badge">GNU/Linux</span>
-        <span class="tech-badge">Git</span>
-        <span class="tech-badge">ESP32</span>
-        <span class="tech-badge">Raspberry Pi</span>
-      </div>
-    </article>
-
-    <article class="project-card">
-      <h3 class="project-title">
-        <a href="https://github.com/pflaumax/fastapi_todo_list" target="_blank" rel="noopener noreferrer">FastAPI TODO List</a>
-      </h3>
-      <p class="project-description">A simple TODO list application built with FastAPI. It uses an in-memory dictionary as a database, Pydantic models for data validation, and includes comprehensive unit tests. Example HTTP requests provided for testing.</p>
-      <div class="project-tech">
-        <span class="tech-badge">Python</span>
-        <span class="tech-badge">FastAPI</span>
-        <span class="tech-badge">Pydantic</span>
-        <span class="tech-badge">Pytest</span>
-        <span class="tech-badge">GNU/Linux</span>
-        <span class="tech-badge">Git</span>
-      </div>
-    </article>
-
-    <article class="project-card">
-      <h3 class="project-title">
-        <a href="https://github.com/pflaumax/external_api_integration" target="_blank" rel="noopener noreferrer">GitHub User Fetcher</a>
-      </h3>
-      <p class="project-description">Fetches users from the GitHub API and saves them to a CSV file. FastAPI powered endpoints start tasks, Celery handles async processing, and Redis is used as the message broker. All services run in Docker containers.</p>
-      <div class="project-tech">
-        <span class="tech-badge">Python</span>
-        <span class="tech-badge">FastAPI</span>
-        <span class="tech-badge">Celery</span>
-        <span class="tech-badge">Redis</span>
-        <span class="tech-badge">Docker</span>
-        <span class="tech-badge">Git</span>
-      </div>
-    </article>
-
-    <article class="project-card">
-      <h3 class="project-title">
-        <a href="https://github.com/pflaumax/simple_ml_integration" target="_blank" rel="noopener noreferrer">ML Task Predictor</a>
-      </h3>
-      <p class="project-description">ML-powered REST API that predicts the priority of tasks based on their descriptions using text classification. The FastAPI server exposes endpoints for predicting task priorities. Model is trained on a CSV dataset.</p>
-      <div class="project-tech">
-        <span class="tech-badge">Python</span>
-        <span class="tech-badge">FastAPI</span>
-        <span class="tech-badge">ML</span>
-        <span class="tech-badge">Data Processing</span>
-        <span class="tech-badge">Pandas</span>
-        <span class="tech-badge">Scikit Learn</span>
-        <span class="tech-badge">Git</span>
-      </div>
-    </article>
+    {% endfor %}
   </div>
 </section>
 
