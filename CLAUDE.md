@@ -180,6 +180,26 @@ that rule sets `position: relative`. Its own rule in §6 repeats what it needs, 
 explicit `z-index` above 0 so the `z-index: -1` pseudo-layers stay behind its label but in front
 of the page scrolling underneath.
 
+**The glitch is home-page only, and the scope is load-bearing.** Clicking the wordmark toggles
+`.is-melted` on `<main>`, which applies a static SVG filter (`feTurbulence` → `feDisplacementMap`,
+`js/melt.js`, filter defined in `base.html`). Rebuilt from `github.com/henrik/fbergmanse`, where
+the original calls it *glitch*, not melt. Three constraints:
+
+- **Never widen it past `main`.** The header must stay readable — the theme toggle and the nav are
+  the way out. And a filtered ancestor turns `position: fixed` into absolute, so putting this on a
+  post page would drag `.back-to-top-float` along with the melting text instead of leaving it
+  pinned.
+- **On home the wordmark is a `<button>`, not a link** (`.logotype-mark`), because on that page the
+  link pointed at the page you were already on. A link that conditionally refuses to navigate would
+  break middle-click and lie to assistive tech; a button is the honest element for "this does
+  something". Everywhere else the wordmark is an ordinary link home.
+- **There is no `prefers-reduced-motion` rule and that is deliberate** — the filter is static,
+  nothing animates. Do not add a `transition` on `filter`: that *would* be motion, and it would
+  interpolate the filter every frame.
+
+The SVG holder takes `visibility: hidden`, not `display: none`, which can stop the filter reference
+resolving. No state is stored, so navigating away always clears the effect.
+
 ### Storage: local disk only
 
 `settings.py` defines a single `STORAGES` dict (Django 5.1+ API): `STORAGES["default"]` is always `FileSystemStorage` (`MEDIA_ROOT = BASE_DIR/media`, `MEDIA_URL = /media/`); `STORAGES["staticfiles"]` is WhiteNoise's `CompressedManifestStaticFilesStorage` (content-hashed filenames, gzip precompression — `collectstatic` must run before every deploy).

@@ -38,14 +38,41 @@
     {% block extra_head %}{% endblock extra_head %}
   </head>
 <body>
+  {% comment %}The glitch filter, home page only. It lives outside .container so it
+  is never inside the subtree it filters. visibility:hidden rather than display:none —
+  the latter can stop the filter reference resolving in some browsers. Static: one
+  feTurbulence, one feDisplacementMap, no animation anywhere.{% endcomment %}
+  {% if request.resolver_match.url_name == 'index' %}
+  <svg xmlns="http://www.w3.org/2000/svg" version="1.1" class="svg-filter" aria-hidden="true">
+    <defs>
+      <filter id="melt">
+        <feTurbulence type="fractalNoise" baseFrequency="0.1" numOctaves="1" />
+        <feDisplacementMap xChannelSelector="R" yChannelSelector="G" scale="15" in="SourceGraphic" />
+      </filter>
+    </defs>
+  </svg>
+  {% endif %}
   <a class="skip-link" href="#content">Skip to content</a>
   <div class="container">
     <header class="site-header">
       <div class="status-container">
+        {% comment %}On the home page the wordmark links to the page you are already
+        on, so the link is doing nothing — that is the slot the easter egg takes.
+        A real <button>, not a link that conditionally refuses to navigate: the
+        latter breaks middle-click and lies to screen readers. Its accessible name
+        stays "Max Pflaum" because that is what the h1 says; the title carries what
+        it does. Everywhere else it is an ordinary link home.{% endcomment %}
         <h1 class="logotype">
+          {% if request.resolver_match.url_name == 'index' %}
+          <button type="button" class="logotype-mark" data-melt-trigger
+                  aria-pressed="false" title="Melt the page">
+            <span>M</span><span>a</span><span>x</span> <span>P</span><span>f</span><span>l</span><span>a</span><span>u</span><span>m</span>
+          </button>
+          {% else %}
           <a href="{% url 'website_app:index' %}">
             <span>M</span><span>a</span><span>x</span> <span>P</span><span>f</span><span>l</span><span>a</span><span>u</span><span>m</span>
           </a>
+          {% endif %}
         </h1>
         <div class="header-utils">
           {% comment %}Deliberately unmarked: no band, no colour shift, nothing that
@@ -77,7 +104,7 @@
       {% endwith %}
     </header>
 
-    <main class="content" id="content" tabindex="-1">
+    <main class="content" id="content" tabindex="-1" data-melt-target>
       {% block content %}{% endblock content %}
     </main>
 

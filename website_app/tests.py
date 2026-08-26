@@ -253,6 +253,49 @@ class HomeLatestProjectsTests(TestCase):
         self.assertNotContains(response, "section-rule")
 
 
+class MeltEasterEggTests(TestCase):
+    """
+    The glitch filter: home page only, triggered by the wordmark. Scope is the
+    thing to protect — a filtered ancestor turns position: fixed into absolute,
+    and post pages carry a fixed back-to-top inside <main>.
+    """
+
+    def test_home_carries_the_filter_the_trigger_and_the_script(self):
+        response = self.client.get(reverse("website_app:index"))
+
+        self.assertContains(response, 'id="melt"')
+        self.assertContains(response, "data-melt-trigger")
+        self.assertContains(response, "data-melt-target")
+        self.assertContains(response, "js/melt.")
+
+    def test_the_wordmark_is_a_button_on_home_and_a_link_everywhere_else(self):
+        """
+        On home the wordmark linked to the page you were already on, so the
+        easter egg takes that slot. A real button, not a link that refuses to
+        navigate.
+        """
+        home = self.client.get(reverse("website_app:index"))
+        self.assertContains(home, "logotype-mark")
+
+        for name in "blog", "projects", "contact":
+            other = self.client.get(reverse(f"website_app:{name}"))
+            self.assertNotContains(other, "logotype-mark")
+
+    def test_no_other_page_can_be_melted(self):
+        owner = User.objects.create_user("meltauthor", password="pw")
+        post = Post.objects.create(title="A Post", content="<p>x</p>", owner=owner)
+
+        for url in (
+            reverse("website_app:blog"),
+            reverse("website_app:projects"),
+            reverse("website_app:contact"),
+            reverse("website_app:post", args=[post.slug]),
+        ):
+            response = self.client.get(url)
+            self.assertNotContains(response, 'id="melt"')
+            self.assertNotContains(response, "data-melt-trigger")
+
+
 class PostPageFurnitureTests(TestCase):
     """
     The way out of a post and the ways to pass it on: the back link, the two
