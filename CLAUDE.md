@@ -236,9 +236,22 @@ generates Perlin noise across the entire viewport and regenerates it on resize.
 learn. A blend mode only pushes one way — `multiply` darkens, `screen` lifts — so turning the noise
 up drags the ground with it. On dark, strength alone put `#21201a` at `#3c3b36`, which met `--rule`
 and made every hairline on the site vanish. Give the noise headroom instead: dark `--bg` is
-`#0d0c08` and renders at `#23221e`, two levels off the palette's `#21201a`, so the rules never had
+`#181713` and renders at `#24231f`, two levels off the palette's `#21201a`, so the rules never had
 to move. Light works the same way in the other direction, with `--bg` lighter than the ground you
 see.
+
+So the two move **together**: `feFuncA`'s `slope` sets how coarse the texture is, and `--bg` is then
+solved for the ground it has to land on — `B = (target − 255·L) / (1 − L)`, with `L` read off a
+render. Dark was turned down from `.26`/`#0d0c08` (σ 5.9) to **`.14`/`#181713` (σ 3.1)**, by way of
+`.18`/`#151410` (σ 4.0); `.10`/`#1c1b17` (σ 2.3) is the next step down, all four measured landing on `#24231f`
+with text at 12.5:1 and `--rule` at 1.30:1. Drop the slope on its own and the page goes with it.
+
+Light followed, with the sign flipped — `multiply` darkens, so its base moves *down* as the slope
+comes down: `.55`/`#fbf5e5` (σ 5.5) → **`.33`/`#f3eede` (σ 3.3)**, both landing on `#e8e3d4` (the new one rounds to `#e8e4d4`,
+a single unit of green — an order below the grain's own σ, so `--px-ground` was left where it is). **Keep the
+two σ within a few tenths of each other.** It is one sheet of paper lit two ways; a ground that is
+visibly grainier in the dark reads as two different papers. `scripts/og_image.html` hardcodes the
+light paper and its grain, so it takes the same two values and has to be regenerated with them.
 
 `overlay` and `soft-light` are dead ends for this. They compress toward the base, so on a dark
 ground they behave like `multiply` and on a light one like `screen` — measured σ of 1–2 either way,
@@ -247,10 +260,11 @@ which is no texture at all.
 **On both themes `--bg` is now the base *under* the grain, not the colour of the page.**
 `--px-ground` is what the eye sees, and outlined pixel elements fill with that. Filling one with
 `--bg` puts a visibly darker sticker on the page — that is exactly how the theme toggle looked
-before this. Measured, in case a dial is ever touched again: dark ground `#23221e` at σ 17.7, text
-12.63:1, rules 1.31:1; light ground `#e8e3d4` at σ 16.4, text 12.85:1, muted 4.73:1, rules 1.24:1.
-Note the muted value — the *old* off-white palette was at 4.39:1, below AA, and nobody had
-measured it.
+before this. Measured, in case a dial is ever touched again — per-channel 8-bit σ over a flat
+region of a headless-Chrome render, which is the scale every σ in this section is on: dark ground
+`#24231f` at σ 3.1 (it was 5.9 before the grain was turned down), text 12.44:1, muted 5.43:1, rules
+1.29:1; light ground `#e8e3d4` at σ 5.5, text 12.85:1, muted 4.73:1, rules 1.24:1. Note the muted
+value — the *old* off-white palette was at 4.39:1, below AA, and nobody had measured it.
 
 **`.post-content img` gets a light warm knock-back, not a duotone.** It was a duotone, and that was
 a mistake worth recording: the images in these posts are evidence, not mood. One caption reads
