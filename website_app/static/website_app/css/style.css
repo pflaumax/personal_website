@@ -54,9 +54,9 @@
 
   /* Aged paper, not the old off-white. --bg is the base the grain multiplies
      into, so it sits a touch lighter than the colour you actually see: the
-     rendered ground is about #f2ecdc. Everything neutral is warmed to match —
-     a cool grey rule on a cream ground reads as dirt rather than as a line. */
-  --bg: #fbf5e5;
+     rendered ground is #e8e3d4. Everything neutral is warmed to match — a cool
+     grey rule on a cream ground reads as dirt rather than as a line. */
+  --bg: #f3eede;
   --surface-2: #efe7d2;
   --text: #211f18;
   --muted: #696250;
@@ -95,19 +95,32 @@
      symmetrical: multiply on paper only ever darkens, so it can take a strong
      alpha, while screen on the dark ground lifts the whole surface — at the
      light theme's strength it washed the warm ink-brown out to a flat grey.
-     The dark field uses overlay, not screen. screen only ever lifts, so any
-     strength that made the grain visible also washed #21201a out to a flat grey
-     — and worse, dragged the ground up to meet --rule (#38362c), collapsing
-     every hairline from 1.38:1 against the ground to 1.05:1. overlay darkens as
-     much as it lifts, so the ground keeps its warmth and the rules survive
-     while the texture gets properly coarse. Measured rather than guessed. */
+
+     feFuncA's slope is the strength dial, and on the dark theme it does not
+     move alone. screen lifts the mean by about slope × (255 − --bg), so turning
+     the noise down also turns the page down: at the current .14 the original
+     #0d0c08 base would render #191815 instead of the intended ground. --bg is
+     raised by the same arithmetic — B = (target − 255·L) / (1 − L), L measured
+     off a render — so the ground stays put while only the texture changes.
+     Measured, dark: .26/#0d0c08 → σ 5.9, .18/#151410 → σ 4.0, .14/#181713 → σ
+     3.1 (current), .10/#1c1b17 → σ 2.3, all four landing on #24231f with text
+     at 12.5:1 and --rule at 1.30:1. Change the slope and the base together or
+     the whole page shifts.
+
+     Light works the same way with the sign flipped: multiply darkens, so its
+     base moves *down* as the slope comes down. .55/#fbf5e5 → σ 5.5,
+     .33/#f3eede → σ 3.3 (current), both landing on #e8e3d4 (the .33 render
+     rounds to #e8e4d4 — one unit of green, an order below the grain's own σ,
+     so --px-ground is left alone). The two themes are
+     kept at the same σ on purpose — it is meant to read as one sheet of paper
+     lit two ways, and a page that is grainier in the dark reads as two. */
   /* The page colour as the eye sees it, once the grain has blended into --bg.
      On the dark theme those are no longer the same thing: --bg is the base the
      noise is screened onto, and it is much darker than the result. Anything
      that has to match the page — an outlined pixel element's fill — takes this,
      never --bg, or it reads as a dark sticker stuck on the page. */
   --px-ground: #e8e3d4;
-  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='linear' slope='0.55'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23g)'/%3E%3C/svg%3E");
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='linear' slope='0.33'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23g)'/%3E%3C/svg%3E");
   --grain-blend: multiply;
 
   --code-bg: #f0e9d6;
@@ -179,7 +192,7 @@
   :root:not([data-theme="light"]) {
     color-scheme: dark;
 
-    --bg: #0d0c08;
+    --bg: #181713;
     --surface-2: #2d2c24;
     --text: #eae5d4;
     --muted: #9d9886;
@@ -200,7 +213,7 @@
     --code-bg: #29281f;
 
     --px-ground: #23221f;
-    --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='linear' slope='0.26'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23g)'/%3E%3C/svg%3E");
+    --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='linear' slope='0.14'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23g)'/%3E%3C/svg%3E");
     --grain-blend: screen;
 
     --weight-body: 255;
@@ -213,7 +226,7 @@
 :root[data-theme="dark"] {
   color-scheme: dark;
 
-  --bg: #0d0c08;
+  --bg: #181713;
   --surface-2: #2d2c24;
   --text: #eae5d4;
   --muted: #9d9886;
@@ -234,7 +247,7 @@
   --code-bg: #29281f;
 
   --px-ground: #23221f;
-  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='linear' slope='0.26'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23g)'/%3E%3C/svg%3E");
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='linear' slope='0.14'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23g)'/%3E%3C/svg%3E");
   --grain-blend: screen;
 
   --weight-body: 255;
