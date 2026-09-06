@@ -168,6 +168,42 @@ class PostSlugTests(TestCase):
         self.assertEqual(post.slug, original_slug)
 
 
+class PostExcerptTests(TestCase):
+    """
+    Covers Post.excerpt() (website_app/models.py). strip_tags keeps the text
+    between the tags it removes, so a post carrying an inline <style> or
+    <script> block leaks raw CSS into the blog card, the RSS summary and the
+    meta description — none of which are visible while writing the post.
+    """
+
+    def setUp(self):
+        self.owner = User.objects.create_user("excerpt-author", password="pw")
+
+    def _post(self, content):
+        return Post.objects.create(title="Filters", content=content, owner=self.owner)
+
+    def test_style_block_is_not_part_of_the_excerpt(self):
+        post = self._post(
+            "<style>.fx { margin: 2rem; color: red; }</style>"
+            "<p>Real prose starts here.</p>"
+        )
+        self.assertEqual(post.excerpt(), "Real prose starts here.")
+
+    def test_script_block_is_not_part_of_the_excerpt(self):
+        post = self._post("<script>var x = 1;</script><p>Real prose starts here.</p>")
+        self.assertEqual(post.excerpt(), "Real prose starts here.")
+
+    def test_stripped_block_still_separates_surrounding_words(self):
+        # Substituting a space, not "", keeps two words from being glued
+        # together when a block sits between them.
+        post = self._post("<p>before</p><style>.a{}</style><p>after</p>")
+        self.assertEqual(post.excerpt(), "before after")
+
+    def test_ordinary_markup_is_unaffected(self):
+        post = self._post("<p>Plain <strong>post</strong> body.</p>")
+        self.assertEqual(post.excerpt(), "Plain post body.")
+
+
 class PageMetadataTests(TestCase):
     """
     Every page used to ship the same hardcoded <title> and description, which

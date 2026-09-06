@@ -317,10 +317,31 @@ here, but a code block pasted that way arrives as a plain `div` and never gets `
 CSS cannot recover semantics that were never pasted. `.post-content` styles everything the
 toolbar can emit, including lists, tables and `codesample`, which no current post uses yet.
 
+**A post that needs inline `<style>`, inline SVG or `<script>` cannot go through the editor,
+and `scripts/publish_post.py` is the way round it.** `content` is rendered `|safe`, so anything
+that reaches the column is served verbatim and an inline `<script>` runs normally — it is
+server-rendered, not injected. TinyMCE is the only obstacle: it strips script tags and mangles
+SVG on save. The script writes the column directly:
+
+```bash
+python scripts/publish_post.py <slug> "<Title>" path/to/body.html   # create or update in place
+python scripts/publish_post.py --show <slug>                        # count the tags that survived
+```
+
+Re-running with the same slug uses `queryset.update()`, so `Post.save()` never re-derives the
+slug and the URL and `date_added` stay put. **Opening such a post in the admin and pressing Save
+destroys it** — TinyMCE rewrites the body on the way in. Edit the source file and re-run instead.
+`noise-and-displacement` is the post this exists for; its body lives in `media_for_blogposts/`,
+which is gitignored, so keep a copy anywhere that is not.
+
+Related, and the reason `Post.excerpt()` strips `<style>`/`<script>` before `strip_tags`:
+`strip_tags` removes tags but keeps the text between them, so without that step the blog card,
+the RSS summary and the meta description all opened with raw CSS. `PostExcerptTests` pins it.
+
 `debug_toolbar` and `django_extensions` are dev-only (`requirements-dev.txt`, not installed in prod) — both `INSTALLED_APPS`/`MIDDLEWARE` entries and the `import debug_toolbar` in `urls.py` are gated behind `if DEBUG`. Production always runs `DEBUG=False`.
 
 ## Deployment
 
-Self-hosted on a Raspberry Pi 4: Nginx → Gunicorn under a `django-website` systemd unit (`sudo systemctl restart django-website`), Postgres local. Step-by-step guides live in `deployment/` — note that directory and `media_for_blogposts/` are **gitignored and local-only**, so they won't appear on a fresh clone.
+Self-hosted on a Raspberry Pi 5 (the README and `docs/` still say Pi 4; the hardware was checked on 2026-08-29): Nginx → Gunicorn under a `django-website` systemd unit (`sudo systemctl restart django-website`), Postgres local. Step-by-step guides live in `deployment/` — note that directory and `media_for_blogposts/` are **gitignored and local-only**, so they won't appear on a fresh clone.
 
 `.github/workflows/ping.yml` curls `https://pflaumax.dev/healthcheck/` every 10 minutes; `/healthcheck/` is `@csrf_exempt` (no `@require_GET` — HEAD requests must pass too) and excluded from page-view stats.

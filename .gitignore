@@ -107,6 +107,8 @@ media_for_blogposts/
 # the user-facing summary in README.md, both of which are tracked.
 NOTES-*.md
 /db_backup/
+/docs
+/avatars
 
 # Database dumps anywhere in the tree. This repo is public and a dump carries
 # password hashes and session keys — /db_backup/ alone is one stray `mv` away

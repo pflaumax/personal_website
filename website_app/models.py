@@ -1,5 +1,6 @@
 import html
 import logging
+import re
 
 from django.contrib.auth.models import User
 from django.db import models
@@ -85,6 +86,11 @@ class Post(models.Model):
     EXCERPT_LENGTH = 320
     META_DESCRIPTION_LENGTH = 155
 
+    # strip_tags drops the tags but keeps whatever sits between them, so a post
+    # carrying an inline <style> or <script> block would otherwise open its
+    # excerpt — and its RSS summary, and its meta description — with raw CSS.
+    _NON_PROSE = re.compile(r"<(style|script)\b[^>]*>.*?</\1\s*>", re.I | re.S)
+
     def excerpt(self, length=None):
         """Plain-text opening of the post.
 
@@ -93,7 +99,8 @@ class Post(models.Model):
         renders it escapes the ampersand again, so readers see `&amp;nbsp;`.
         """
         limit = self.EXCERPT_LENGTH if length is None else length
-        text = " ".join(html.unescape(strip_tags(self.content)).split())
+        body = self._NON_PROSE.sub(" ", self.content)
+        text = " ".join(html.unescape(strip_tags(body)).split())
         if len(text) <= limit:
             return text
         return text[:limit].rsplit(" ", 1)[0] + "…"
