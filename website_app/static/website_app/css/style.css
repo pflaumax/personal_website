@@ -611,19 +611,16 @@ a:hover {
   margin: 0;
 }
 
-/* The sprite is 143x144 and carries single-pixel detail, so it is shown at
-   1:1 — any fractional scaling would swallow the sparkles. As a mask it takes
-   a token colour instead of the near-white it was drawn in, so one asset
-   serves both themes. */
+/* The sprite is a single-colour line-art crocodile, masked with the --text
+   token so one asset works unchanged in both themes, at the same 220x220
+   footprint the previous light-theme drawing used. */
 .sprite {
-  width: 143px;
-  height: 144px;
+  width: 240px;
+  height: 240px;
   flex-shrink: 0;
-  /* Ink, not accent: green is reserved for interaction and state everywhere
-     else, and a 143px green sprite would spend that budget on decoration. */
   background-color: var(--text);
-  -webkit-mask-image: url("../images/ghost.png");
-  mask-image: url("../images/ghost.png");
+  -webkit-mask-image: url("../images/croco.png");
+  mask-image: url("../images/croco.png");
   -webkit-mask-size: contain;
   mask-size: contain;
   -webkit-mask-repeat: no-repeat;
