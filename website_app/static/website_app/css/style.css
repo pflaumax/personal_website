@@ -71,10 +71,10 @@
      so the whole ramp moves a few degrees toward the yellow the ground is
      already carrying — it stays the same green, on this paper. */
   --accent: #23543a;
-  --mark: #b9e3bd;
-  --mark-hi: #97d69f;
+  --mark: #9cd7a1;
+  --mark-hi: #7dcc87;
   --mark-depth: 5px;
-  --selection: #97d69f;
+  --selection: #7dcc87;
   --live: #3fbf6f;
 
   /* --mark is the highlighter band under a link; --fill is a filled surface
@@ -82,9 +82,9 @@
    * jobs, which is why they were ever the same token. On a dark ground they
    * pull apart: the band has to clear the background to stay visible, while a
    * filled block at that strength reads as a sticker stuck on the page. */
-  --fill: #b9e3bd;
-  --fill-hi: #97d69f;
-  --fill-line: #97d69f;
+  --fill: #9cd7a1;
+  --fill-hi: #7dcc87;
+  --fill-line: #7dcc87;
   --on-fill: #211f18;
   /* Ink for text sitting on a *pasted* highlight. Deliberately absent from both
      dark blocks: the inline background TinyMCE writes into a post body never
@@ -615,8 +615,8 @@ a:hover {
    token so one asset works unchanged in both themes, at the same 220x220
    footprint the previous light-theme drawing used. */
 .sprite {
-  width: 240px;
-  height: 240px;
+  width: 195px;
+  height: 195px;
   flex-shrink: 0;
   background-color: var(--text);
   -webkit-mask-image: url("../images/croco.png");
@@ -625,6 +625,11 @@ a:hover {
   mask-size: contain;
   -webkit-mask-repeat: no-repeat;
   mask-repeat: no-repeat;
+  /* It is a <button> now (second melt trigger), so the browser's own button
+     chrome — border, padding, font — needs stripping back to a plain box. */
+  border: none;
+  padding: 0;
+  cursor: pointer;
 }
 
 .latest-section {
@@ -1221,6 +1226,21 @@ a:hover {
 /* 8. Contact Page */
 .contact-section {
   max-width: 62ch;
+}
+
+.contact-list {
+  list-style: none;
+  margin: 1.5rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.contact-arrow {
+  display: inline-block;
+  color: var(--accent);
+  margin-right: 0.35rem;
 }
 
 /* 9. Tools Page */

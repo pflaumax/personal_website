@@ -14,19 +14,23 @@
 (function () {
   "use strict";
 
-  var trigger = document.querySelector("[data-melt-trigger]");
+  var triggers = document.querySelectorAll("[data-melt-trigger]");
   var target = document.querySelector("[data-melt-target]");
-  if (!trigger || !target) return;
+  if (!triggers.length || !target) return;
 
   var activeClass = "is-melted";
 
   function setState(on) {
     target.classList.toggle(activeClass, on);
-    trigger.setAttribute("aria-pressed", on ? "true" : "false");
+    triggers.forEach(function (trigger) {
+      trigger.setAttribute("aria-pressed", on ? "true" : "false");
+    });
   }
 
-  trigger.addEventListener("click", function () {
-    setState(!target.classList.contains(activeClass));
+  triggers.forEach(function (trigger) {
+    trigger.addEventListener("click", function () {
+      setState(!target.classList.contains(activeClass));
+    });
   });
 
   document.addEventListener("keydown", function (event) {

@@ -29,14 +29,14 @@
         reads to anyone scanning for it. Unhyphenated on purpose — the bio carries
         no other hyphenated compound.{% endcomment %}
         <p class="intro">
-          I'm a software developer working mostly in Python. I build FastAPI
-          backends and LLM systems with LangGraph and MCP, and work spec driven,
-          with AI across the development process itself.
+          I'm a software developer focused on Python backends and AI systems.
+          I build FastAPI services, RAG pipelines, and agentic workflows with
+          LangGraph and MCP through spec-driven development.
         </p>
         <p class="personal">
           Dedicated to open source, tech and hardware. Embedded enthusiast and
           vintage gadgets lover. I tinker with Raspberry Pi and ESP32, tune my
-          workspace, and automate my home. Unix by preference.
+          workspace, and automate my home. Linux/Unix by preference.
         </p>
         {% comment %}The one line here nobody else could write. Everything above it
         describes work thousands of people also do; this describes a person. Left at
@@ -58,8 +58,12 @@
 
       {% comment %}A single-colour sprite drawn as a CSS mask rather than an <img>:
       the source is near-white on transparency, so as an image it would vanish on
-      paper. Masked, it takes a theme token and works in both.{% endcomment %}
-      <div class="sprite" role="img" aria-label="Line drawing of a crocodile biting a circuit board"></div>
+      paper. Masked, it takes a theme token and works in both. It doubles as a
+      second melt trigger — same page-wide effect as the wordmark, home page
+      only, since data-melt-target only exists there.{% endcomment %}
+      <button type="button" class="sprite" data-melt-trigger
+              aria-pressed="false"
+              aria-label="Line drawing of a crocodile biting a circuit board"></button>
     </div>
 
     {% if latest_projects %}
