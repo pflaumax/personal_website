@@ -7,8 +7,7 @@
   {% comment %}This page is no longer in the primary nav, so it has to say where
   it belongs to anyone who lands on it directly.{% endcomment %}
   <p class="tools-context">
-    Part of <a href="{% url 'website_app:projects' %}">my personal website</a> —
-    both tools run entirely in the browser and reset when you close the tab.
+    Part of <a href="{% url 'website_app:projects' %}">my personal website</a>.
   </p>
   
   <div class="tools-grid">
@@ -16,7 +15,7 @@
     <article class="tool-card">
       <h3 class="tool-title">Todo List</h3>
       <p class="tool-description">
-        Your list refreshes when you close the tab. Pay attention to what matters now!</p>
+        Your list refreshes when you close the tab.</p>
       <div class="tool-content">
         <form id="task-form" class="task-form" aria-label="Task entry form">
           <div class="task-input-group">
@@ -28,7 +27,7 @@
         <div class="task-container">
           <ul id="task-list" class="task-list" aria-label="Tasks list"></ul>
           <div id="task-empty-state" class="task-empty-state">
-            <p>No tasks yet. Add one above!</p>
+            <p>No tasks yet.</p>
           </div>
           <div class="task-actions">
             <button id="clear-completed" class="task-action-button">Clear Completed</button>
@@ -41,7 +40,7 @@
     <article class="tool-card">
       <h3 class="tool-title">Pomodoro Timer</h3>
       <p class="tool-description">
-        Stay focused! Your Pomodoro session resets when you leave or reload.</p>
+        Your session resets when you leave or reload.</p>
       <div class="tool-content">
         <div class="timer-display">
           <p id="timer" class="timer-text">25:00</p>
