@@ -93,7 +93,18 @@ coverage.xml
 data.json
 post_media_data.json
 
-media_for_blogposts/
+# Post sources: the .html bodies are tracked, the working images and audio in
+# here are not — those are duplicates of what already ships under media/.
+#
+# The bodies have to be versioned. They are the source of truth for every post
+# published by scripts/publish_post.py, and while this directory was ignored
+# wholesale each one existed in exactly one place: an untracked file on one
+# laptop. It also meant `git pull` on the Pi did not bring the file the publish
+# script needs, so a fix could not be deployed without copying it by hand.
+media_for_blogposts/*
+!media_for_blogposts/*/
+media_for_blogposts/*/*
+!media_for_blogposts/*/post.html
 /deployment/
 
 .mypy_cache/

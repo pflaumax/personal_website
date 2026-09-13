@@ -1,0 +1,51 @@
+{% comment %}
+U+002F vs U+005C in IPAGothic — the outline comparison from /blog/arpa-domain/.
+
+Both outlines are shown at once. In the post body this was one SVG with a button
+that swapped which polygon was visible, which meant the figure hid half of the
+argument it exists to make: four points against twenty-three, side by side. The
+button was also the only reason this figure needed JavaScript.
+
+The yen shape is an approximation — the diagonal plus three crossbars, not all
+twenty-three points traced. It is drawn in --accent to read as the odd one out.
+{% endcomment %}
+<figure class="fig">
+  <div class="fig-head">
+    <span class="fig-label"><b>U+002F</b> (slash) vs <b>U+005C</b> (yen-as-backslash) &middot; same codepoint slot, IPAGothic outline</span>
+  </div>
+  <div class="fig-stage">
+    <div class="fig-panels">
+      <div class="fig-panel">
+        <span class="fig-panel-label"><b>U+002F</b> &middot; 4 points</span>
+        <svg class="fig-outline" width="200" height="200" viewBox="-20 -220 220 220"
+             role="img" aria-label="A single diagonal stroke rising left to right, four points.">
+          <g stroke="var(--rule-soft)" stroke-width="1">
+            <line x1="-20" y1="0" x2="200" y2="0"/>
+            <line x1="0" y1="-220" x2="0" y2="20"/>
+          </g>
+          <polygon points="88,-168.3 96.2,-164.7 14.1,12.9 5.9,9.2" fill="var(--text)"/>
+        </svg>
+      </div>
+      <div class="fig-panel">
+        <span class="fig-panel-label"><b>U+005C</b> &middot; 23 points</span>
+        <svg class="fig-outline" width="200" height="200" viewBox="-20 -220 220 220"
+             role="img" aria-label="A diagonal stroke falling left to right, cut across by two crossbars and a stem.">
+          <g stroke="var(--rule-soft)" stroke-width="1">
+            <line x1="-20" y1="0" x2="200" y2="0"/>
+            <line x1="0" y1="-220" x2="0" y2="20"/>
+          </g>
+          <polygon points="10,-168.3 18,-164.7 96,12.9 88,9.2" fill="var(--accent)"/>
+          <rect x="20" y="-94.4" width="70" height="13.5" fill="var(--accent)"/>
+          <rect x="14" y="-80.9" width="76" height="13.5" fill="var(--accent)"/>
+          <rect x="8" y="-63.1" width="82" height="13.5" fill="var(--accent)"/>
+        </svg>
+      </div>
+    </div>
+  </div>
+  <figcaption class="fig-foot">
+    Left: four points, one diagonal stroke &mdash;
+    <code>moveTo(880,1683) lineTo(962,1647) lineTo(141,-129) lineTo(59,-92)</code>.
+    Right: twenty-three points, two crossbars and a stem, with horizontal
+    segments at y=944, 809, 631 and 496. That is not a slash with a quirk.
+  </figcaption>
+</figure>

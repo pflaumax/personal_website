@@ -1,0 +1,184 @@
+<!-- =====================================================================
+     The domain took twenty minutes. The backslash took three hours.
+     — post body.
+
+     Ordinary prose. No inline stylesheet, no inline script, no inline SVG,
+     so this body survives a round trip through the TinyMCE admin form and
+     Post.raw_html is off for it.
+
+     The four diagrams are template partials under
+     website_app/templates/website_app/figures/, pulled in by the
+     [[figure:NAME]] tokens below. They carry their own CSS in
+     static/website_app/css/post-body.css, which also holds the post-lede,
+     post-note, post-colophon and post-table classes used here. Editing the
+     prose in the admin cannot break a token, and cannot reach a figure.
+
+     Screenshot slots are marked "SHOT n" in comments below — grep for them.
+     Screenshots are NOT figure partials: a picture with a caption is markup
+     the editor handles natively. Upload each one as a MediaFile in the admin,
+     then put a figure element with an img and a figcaption at the marker,
+     pointing at /media/media_files/<name>. style.css already styles those.
+
+     Do not name a tag literally in this comment. Post._NON_PROSE strips
+     style and script blocks by regex, so a literal opening tag here would
+     pair with a real closing tag below, the comment would lose its
+     terminator, and strip_tags would then eat the lede out of the excerpt,
+     the RSS summary and the meta description. Learned the hard way.
+     ===================================================================== -->
+
+<p class="post-lede">I put a website on <code>.arpa</code> — the top-level domain reserved for critical internet infrastructure. Not a subdomain of something on <code>.arpa</code>. A real address in the zone, resolving over real DNS, serving a real page.</p>
+<p>That part was easy. What follows is everything that went wrong afterwards, because the interesting failures were not in the DNS.</p>
+
+<h2>The zone nobody registers</h2>
+<p>You cannot buy <code>mysite.arpa</code>. There is no registrar. The zone exists for machines: <code>in-addr.arpa</code> and <code>ip6.arpa</code> hold <em>reverse</em> DNS, the mapping that turns an IP address back into a name.</p>
+<p>Reverse DNS is delegated. If you control an IP block, you control the corresponding slice of <code>ip6.arpa</code>. That is the whole trick — the specification says which addresses map where, and says nothing at all about what records you are allowed to put there.</p>
+<p>So: get an IPv6 block, and its reverse zone is a domain you own.</p>
+<p>Hurricane Electric hands out <code>/64</code> prefixes for free. Their form asks for an IPv4 endpoint to tunnel from, and validates exactly one thing about it: that it answers a ping. Not that it is yours.</p>
+<p>Mine came back <code>2001:470:1f15:4f4::/64</code>. Turning that into a hostname is mechanical — pad each group to four characters, split into single characters, reverse:</p>
+<pre><code>2001:470:1f15:4f4
+2001:0470:1f15:04f4
+2.0.0.1.0.4.7.0.1.f.1.5.0.4.f.4
+4.f.4.0.5.1.f.1.0.7.4.0.1.0.0.2.ip6.arpa</code></pre>
+<p>Cloudflare refuses to host that zone. deSEC does not. Point Hurricane Electric's reverse delegation at deSEC's nameservers, add a <code>CNAME</code>, deploy static files behind it, done.</p>
+<p>Total cost: nothing. Total time: about twenty minutes.</p>
+<p>Then I decided the page should be a fake CERN terminal with an ASCII wordmark, and lost an afternoon.</p>
+
+<!-- SHOT 1 (essential) — the .arpa page as served, full width, wordmark visible.
+     This is the one screenshot the post cannot do without: the page is IPv6-only
+     over plain HTTP, so most readers physically cannot open it.
+     Alt: "The .arpa page: an ASCII wordmark above a status grid and an event log,
+     rendered as a green-on-dark terminal." -->
+
+<h2>Every font lies about itself</h2>
+<p>The page renders its logo as ASCII art — slashes, colons, pipes, arranged so that each line has the same character count. It only works if every glyph occupies exactly the same horizontal space. Monospace is load-bearing.</p>
+<p>I wanted a Japanese font for atmosphere, so I tried MS UI Gothic. It looks perfect and it is completely unusable, because it is proportional. Its ASCII advance widths, in font units, are thirteen distinct values — even the two slashes disagree. Feed the logo through it and the eleven lines — identical character counts — render between 15.54 and 20.88 em wide. A 34% spread. The letters stop being letters.</p>
+
+<!-- SHOT 2 (essential) — the wordmark set in MS UI Gothic, right edge ragged.
+     The claim above is "the letters stop being letters"; the figure below proves
+     it in font units. This proves it to the eye, which is the faster proof.
+     Put it before the bar chart: claim, then picture, then numbers.
+     Alt: "The same eleven-line ASCII wordmark in MS UI Gothic, its right edge
+     ragged where identical character counts render different widths." -->
+
+[[figure:ms-ui-gothic-widths]]
+
+<p>Fine. IPAGothic, then: same aesthetic, published free by Japan's IT Promotion Agency specifically as an MS Gothic stand-in, and genuinely monospaced.</p>
+<p>That is when the yen signs appeared.</p>
+
+<!-- SHOT 3 (essential) — the wordmark with yen signs where backslashes belong.
+     The single most concrete image in the post: a bug you can read.
+     Alt: "The ASCII wordmark rendered in IPAGothic, with a yen sign standing in
+     for every backslash." -->
+
+<h2>Twenty-three points where four would do</h2>
+<p>Japanese fonts have a habit older than Unicode. In JIS encoding, the byte at <code>0x5C</code> was the yen sign. ASCII put a backslash there. Fonts that had to serve both drew the yen and moved on, and the convention never fully died — so <code>U+005C</code> in IPAGothic is not a backslash.</p>
+<p>You can see it in the outline. The plain slash is four points, one diagonal stroke. The backslash at the same codepoint has <strong>twenty-three</strong> points, with horizontal segments cutting across it — two crossbars and a stem. That is not a slash with a quirk. That is a different letter wearing its address.</p>
+
+[[figure:glyph-outline-slash-vs-yen]]
+
+<p>So I removed <code>\</code> from the subset, expecting the browser to fall back to Menlo for that one character.</p>
+
+<h2>The advance width you forgot to check</h2>
+<p>That fixed the yen signs and broke the art.</p>
+<p>A font stack is per-character, not per-element. Drop one glyph from the embedded font and the browser sources <em>that glyph only</em> from the next font that has it — along with its metrics. Menlo at 14px advances 8.43px per character. The embedded subset advances 7px.</p>
+<p>Every backslash in the logo became 1.43px wider than its neighbours. Eleven lines, ten different widths.</p>
+<div class="post-note"><strong>The fix was not to route around the glyph but to replace it.</strong> Take the slash outline, mirror it inside its own advance width, write it back over the yen glyph, keep the advance untouched:</div>
+<pre><code>pts = [(880,1683), (962,1647), (141,-129), (59,-92)]
+mirrored = [(advance - x, y) for x, y in pts]</code></pre>
+<p>Twenty-three points back down to four. Grid intact.</p>
+
+<h2>The character that is not a character</h2>
+<p>While measuring that, a second alignment bug surfaced with the same signature and a stupider cause.</p>
+<p>I had generated the glyph list with a filter that dropped whitespace — it read as obviously correct, the way wrong things do. The ASCII art is roughly half spaces. Every one of them was falling back to another font at another advance.</p>
+<p>One line of the subset spec, <code>{' '}</code>, and 74 glyphs instead of 73.</p>
+<div class="post-note">Two bugs, one symptom, both invisible unless you measure. Which is the actual lesson here: after any font change, measure advance width per character across the logo's lines. Every line must report the same number. Eyeballing a screenshot at 14px will not show you a 1.43px drift, and it will absolutely not show you which of the two causes you are looking at.</div>
+
+<h2><code>getComputedStyle</code> will not tell you</h2>
+<p>At one point the page was clearly not rendering the font I thought it was, and my check said otherwise. The check was worthless:</p>
+<pre><code>getComputedStyle(document.body).fontFamily  // "Gothic Terminal", …</code></pre>
+<p>That returns the <em>declared</em> stack. It is the CSS you wrote, echoed back. It says nothing about which face the browser actually resolved, or whether it resolved anything at all.</p>
+<p>To find out, stop asking and start measuring. Draw the same string to a canvas in each candidate font, count opaque pixels, record the width:</p>
+
+[[figure:font-ink-fingerprint]]
+
+<p>The fastest single tell, though, came from a human. The zero. Monaspace draws it dotted; Menlo slashes it. One glance at a screenshot settled a question three programmatic checks had muddled.</p>
+
+<!-- SHOT 4 (essential) — the two zeros side by side, cropped and enlarged.
+     The prose names a screenshot as the thing that settled it, so the post owes
+     the reader that screenshot. Crop tight: this is one glyph, twice.
+     Alt: "A dotted zero beside a slashed zero: Monaspace on the left, Menlo on
+     the right." -->
+
+<h2>Inline the font, not the request</h2>
+<p>The subset is 73 to 74 glyphs, which is small enough that the delivery question inverts.</p>
+<table class="post-table">
+  <thead><tr><th>delivery</th><th class="num">total size</th><th class="num">requests</th><th>risk</th></tr></thead>
+  <tbody>
+    <tr><td>separate <code>.woff2</code></td><td class="num">7,045 B</td><td class="num">2</td><td>possible FOUT</td></tr>
+    <tr><td>inlined base64</td><td class="num">7,490 B</td><td class="num">1</td><td>no FOUT</td></tr>
+  </tbody>
+</table>
+<p>445 bytes to remove a round trip and the flash of fallback text. The site is HTTP/1.1 — no HTTPS on <code>.arpa</code>, and browsers only speak HTTP/2 over TLS, so there is no multiplexing to soften a second request. A round trip costs tens of milliseconds. 445 bytes costs about four.</p>
+<p>Inline wins, and the page stays one file with nothing external.</p>
+<p>One licensing detail worth knowing before you do this: SIL OFL and the IPA license both treat a subset as a derived font, and both reserve the original name. Your <code>@font-face</code> cannot be called <code>IPAGothic</code>. Mine is <code>Gothic Terminal</code>, with the copyright notice kept in a comment above the rule.</p>
+
+<h2>Two bugs that had nothing to do with fonts</h2>
+
+<h3>Centred content can be unreachable</h3>
+<p>I had this, and it looks reasonable:</p>
+<pre><code>html, body { height: 100%; overflow: hidden; }
+body { display: grid; place-content: center; }</code></pre>
+<p>Centred <em>content distribution</em> overflows in both directions. On a window shorter than the content, the top of the page sits at a negative offset — and <code>overflow: hidden</code> means you cannot scroll back to it. Measured at a 693px viewport: <code>top: -15px</code>. The wordmark was simply gone.</p>
+
+<!-- SHOT 5 (worth it) — the page at a 693px-tall viewport, wordmark clipped off
+     the top, no scrollbar to get it back. Include the browser chrome or a
+     viewport-height label so the reader can see it is a short window.
+     Alt: "The page in a short window: the wordmark is cut off above the top edge
+     and there is no scrollbar." -->
+<p>Auto margins do not do this. They resolve to zero when the free space runs out, so a short window degrades into an ordinary scrolling page:</p>
+<pre><code>body { display: flex; }
+.terminal { margin: auto; }</code></pre>
+
+<h3>One timer handle cannot hold two timers</h3>
+<p>The D-Mail button plays a sequence: sending, then a status line, then an error. I wrote it like this:</p>
+<pre><code>let timer;
+const queue = (text, delay) => {
+  clearTimeout(timer);                    // &larr; kills the previous stage
+  timer = setTimeout(() => { &hellip; }, delay);
+};
+
+queue(status, 1400);
+queue(error, 4600);</code></pre>
+<p>The second call cancels the first before it ever fires. The status line — the whole point of the sequence — never appeared. It needed two independent handles, cleared together only at the start of a new click.</p>
+<div class="post-note">Both bugs shipped and sat there working-ish, which is the category I find most interesting: not crashes, just quietly wrong.</div>
+
+<h2>Adding a clock made me delete a whole section</h2>
+<p><em>Steins;Gate</em> has a &ldquo;Divergence Meter&rdquo; — a nixie-tube readout of the worldline's drift, always slightly wrong. I wanted one on the page, live, no images.</p>
+<p>The tubes are <code>&lt;span&gt;</code>s: a <code>repeating-linear-gradient</code> for the glass ribbing, a <code>radial-gradient</code> for the glow, <code>text-shadow</code> for the actual light, all in the palette already on the page. Seven of them, updated once a second, the last digit deliberately randomised — the joke is that a stable reading would be the anomaly.</p>
+
+[[figure:divergence-meter]]
+
+<p>Placing it was the actual problem. My first pass added it as its own section, full-width, between the masthead and the status grid. That pushed everything below it down by one section's worth of height, which on a page whose whole premise is &ldquo;no scroll, fits in one screen&rdquo; is a regression disguised as a feature. The fix wasn't tuning margins — it was noticing the D-Mail relay section had an empty second column doing nothing, and putting the clock there instead. Same row, zero added height, better use of the grid that already existed.</p>
+
+<!-- SHOT 6 (worth it) — the D-Mail relay row with the meter in the second
+     column, cropped to that row. The point is the placement, not the clock, so
+     crop to the row rather than showing the whole page again.
+     Alt: "The D-Mail relay row: the send button on the left, the Divergence
+     Meter filling the column beside it." -->
+<p>Then I made the actual damage report structurally pointless. It existed to hold three numbers: D-Mails sent, timelines ruined, bananas gelatinized. Once the joke stats got cut, it was a whole section — heading, <code>&lt;dl&gt;</code>, grid slot — built to display one line. I moved that line into the event log instead, as its own row, because that is what it already was: an event, timestamped, in a log full of events. Deleting a section to save one <code>&lt;dt&gt;</code>/<code>&lt;dd&gt;</code> pair felt wrong until I noticed the section was the only thing making it feel like more than one pair.</p>
+
+<h2>The layout shift was a reserved height, not a bug</h2>
+<p>The event log's new row reports a real send count and, I decided, should report a real time too — not a scripted <code>23:41:09</code>, but the actual moment you clicked the button. Two clocks now run independently: the nixie meter ticks once a second and lies on purpose; the log row stamps once per click and does not lie at all. They share no state, deliberately — a decorative clock and an honest timestamp are different features that happen to look similar, and merging them would have made the honest one drift too.</p>
+<p>That honesty produced a visible bug. The 403 error line is two sentences; the in-universe status lines are one. Both share a fixed-height container so the page doesn't reflow between them, but I'd sized that container for the common case, one line, then discovered the two-line error via clicking the button during review rather than by reading the CSS. Whatever renders last decides the box's height unless you reserve it up front — and &ldquo;up front&rdquo; means sized for the longest string that can ever land there, not the one you tested with first.</p>
+
+<!-- SHOT 7 (optional) — the two-line 403 line overflowing its reserved box,
+     ideally next to the one-line status for comparison. Cut this one first if
+     the post is running long: the paragraph above already carries the argument.
+     Alt: "The status container holding a two-line 403 message, its second line
+     pushing past the reserved height." -->
+
+<h2>What it adds up to now</h2>
+<p>The site is one <code>index.html</code>, ~51 KB raw, ~30 KB gzipped, one request, no external calls. The event log holds two scripted lines of backstory and one live one; the D-Mail counter and its timestamp both update on click without touching the page's height. The Divergence Meter runs beside it, ticking on its own clock, agreeing with real time on purpose about six digits out of seven.</p>
+<p>Clicking the wordmark runs the whole page through <code>feTurbulence</code> into <code>feDisplacementMap</code> — one static filter, one CSS class, no animation. A footer button swaps every visible string, and every <code>aria-label</code>, into Japanese. &ldquo;Send D-Mail&rdquo; plays its three-stage sequence and increments a counter in <code>localStorage</code>, which is as close to a backend as a joke page should get.</p>
+<p>The DNS was a party trick. The typography was the work.</p>
+<p class="post-colophon"><em>El Psy Kongroo.</em></p>

@@ -1,14 +1,30 @@
+from importlib import import_module
+from pathlib import Path
 from urllib.parse import quote
 
+from django import forms
+from django.contrib.admin.sites import site
 from django.contrib.auth.models import User
 from django.core.management import call_command
 from django.test import RequestFactory, TestCase
 from django.urls import reverse
+from django.utils.safestring import SafeString
+from tinymce.widgets import TinyMCE
 
 from . import views
+from .admin import PostAdmin
 from .media_urls import LEGACY_S3_MEDIA_PREFIX, rewrite_content, rewrite_posts
 from .models import MediaFile, Post
 from .projects_data import PROJECTS
+from .templatetags.figures import figures
+
+# The predicate stays inside the migration deliberately — a backfill rule that
+# lived in app code could be edited later and retroactively change what an
+# already-applied migration meant. import_module is the way in, since the
+# module name is not a valid identifier.
+needs_raw_html = import_module(
+    "website_app.migrations.0011_post_raw_html"
+).needs_raw_html
 
 
 class PublicPageSmokeTests(TestCase):
@@ -129,6 +145,10 @@ class PostSlugTests(TestCase):
     """
     Covers Post.save()'s slug generation (website_app/models.py), which is
     load-bearing for permalinks and risky to touch without coverage.
+
+    The rule is: derive once, on the first save, then leave it alone. A slug is
+    a published URL, and re-deriving it from an edited title moves that URL
+    without anyone asking.
     """
 
     def setUp(self):
@@ -146,17 +166,45 @@ class PostSlugTests(TestCase):
         self.assertEqual(second.slug, "same-title-1")
         self.assertEqual(third.slug, "same-title-2")
 
-    def test_changing_title_regenerates_slug(self):
+    def test_changing_the_title_leaves_the_permalink_alone(self):
+        """
+        The regression this guards: a post published at /blog/arpa-domain/ under
+        the title "The domain took twenty minutes…" would have had its URL
+        rewritten into the whole slugified sentence by the first typo fix.
+        """
         post = Post.objects.create(
-            title="Original Title", content="x", owner=self.owner
+            title="The domain took twenty minutes.",
+            content="x",
+            owner=self.owner,
+            slug="arpa-domain",
         )
-        original_slug = post.slug
 
-        post.title = "Updated Title"
+        post.title = "The domain took twenty minutes. The backslash took three."
         post.save()
 
-        self.assertNotEqual(post.slug, original_slug)
-        self.assertEqual(post.slug, "updated-title")
+        post.refresh_from_db()
+        self.assertEqual(post.slug, "arpa-domain")
+
+    def test_a_hand_picked_slug_is_not_overwritten_on_creation(self):
+        """What scripts/publish_post.py relies on to place a post at a URL."""
+        post = Post.objects.create(
+            title="A Very Long Title Nobody Wants In A URL",
+            content="x",
+            owner=self.owner,
+            slug="short-one",
+        )
+
+        self.assertEqual(post.slug, "short-one")
+
+    def test_clearing_the_slug_asks_for_a_new_one(self):
+        """The deliberate way to rename: SlugField is blank=True and editable."""
+        post = Post.objects.create(title="First Title", content="x", owner=self.owner)
+
+        post.title = "Second Title"
+        post.slug = ""
+        post.save()
+
+        self.assertEqual(post.slug, "second-title")
 
     def test_saving_without_title_change_keeps_slug(self):
         post = Post.objects.create(title="Stable Title", content="x", owner=self.owner)
@@ -647,3 +695,402 @@ class RewriteMediaUrlsCommandTests(TestCase):
         second_run = rewrite_posts(Post)
 
         self.assertEqual(second_run, [])
+
+
+class FigureTokenTests(TestCase):
+    """
+    Covers website_app/templatetags/figures.py — the mechanism that lets a post
+    body stay editable in TinyMCE while its diagrams stay in git.
+
+    The contract is narrow on purpose: a token is plain text the editor cannot
+    break, an unknown name degrades to visible text rather than an exception,
+    and the name pattern is also the path guard.
+    """
+
+    FIGURE = "ms-ui-gothic-widths"
+
+    def test_a_known_token_is_replaced_by_its_partial(self):
+        rendered = figures(f"<p>before</p>[[figure:{self.FIGURE}]]<p>after</p>")
+
+        self.assertNotIn("[[figure:", rendered)
+        self.assertIn('<figure class="fig">', rendered)
+        self.assertIn("<p>before</p>", rendered)
+        self.assertIn("<p>after</p>", rendered)
+
+    def test_the_result_is_marked_safe_so_the_body_is_not_escaped(self):
+        rendered = figures("<p>prose &amp; markup</p>")
+
+        self.assertIsInstance(rendered, SafeString)
+        self.assertEqual(rendered, "<p>prose &amp; markup</p>")
+
+    def test_an_unknown_figure_is_left_on_the_page_and_logged(self):
+        """
+        Visible failure, not a 500: one wrong paragraph beats losing the post,
+        and an unexpanded token is impossible to miss while proofreading.
+        """
+        with self.assertLogs("website_app.figures", "WARNING") as logs:
+            rendered = figures("<p>x</p>[[figure:no-such-figure]]")
+
+        self.assertIn("[[figure:no-such-figure]]", rendered)
+        self.assertIn("no-such-figure", logs.output[0])
+
+    def test_names_outside_the_pattern_are_not_tokens(self):
+        """
+        The pattern allows lowercase, digits and hyphens, which is what keeps a
+        body from addressing anything outside the figures directory — no dot and
+        no slash can reach the template loader.
+        """
+        for body in (
+            "[[figure:../../base]]",
+            "[[figure:Foo]]",
+            "[[figure:foo bar]]",
+            "[[figure:foo.html]]",
+            "[[figure:]]",
+        ):
+            with self.subTest(body=body):
+                self.assertEqual(figures(body), body)
+
+    def test_repeated_tokens_all_expand(self):
+        rendered = figures(f"[[figure:{self.FIGURE}]][[figure:{self.FIGURE}]]")
+
+        self.assertEqual(rendered.count('<figure class="fig">'), 2)
+
+    def test_empty_content_does_not_crash(self):
+        self.assertEqual(figures(""), "")
+        self.assertEqual(figures(None), "")
+
+    def test_the_figure_needs_no_javascript(self):
+        """
+        The bar widths are written inline. They used to be applied by an
+        IntersectionObserver, which was the only reason this figure needed a
+        script — and meant the chart read as all-zero until scrolled into view.
+        """
+        rendered = figures(f"[[figure:{self.FIGURE}]]")
+
+        self.assertNotIn("<script", rendered)
+        self.assertNotIn("data-target", rendered)
+        self.assertIn("width: 100%", rendered)
+        self.assertIn("width: 67%", rendered)
+
+    def test_the_figure_carries_no_palette_of_its_own(self):
+        """Figures consume the site's tokens so both themes follow the page."""
+        rendered = figures(f"[[figure:{self.FIGURE}]]")
+
+        self.assertNotIn("#", rendered)
+
+    def test_every_figure_on_disk_renders(self):
+        """
+        A figure is only reachable by name, so a broken one fails at read time
+        for a reader rather than at deploy time for me. Render them all.
+        """
+        names = sorted(
+            path.stem
+            for path in (
+                Path(__file__).parent / "templates" / "website_app" / "figures"
+            ).glob("*.html")
+        )
+
+        self.assertTrue(names, "no figure partials found")
+        for name in names:
+            with self.subTest(figure=name):
+                rendered = figures(f"[[figure:{name}]]")
+                self.assertNotIn("[[figure:", rendered)
+                self.assertIn("<figure", rendered)
+                self.assertIn("<figcaption", rendered)
+
+    def test_no_figure_needs_javascript(self):
+        """
+        The point of extracting these was that every demo in the post turned out
+        to be decoration: an animation, a toggle that hid half of a comparison,
+        a clock. If a figure grows a script it belongs in a static JS file, not
+        inline in a partial.
+        """
+        names = sorted(
+            path.stem
+            for path in (
+                Path(__file__).parent / "templates" / "website_app" / "figures"
+            ).glob("*.html")
+        )
+
+        for name in names:
+            with self.subTest(figure=name):
+                self.assertNotIn("<script", figures(f"[[figure:{name}]]"))
+
+    def test_the_glyph_figure_shows_both_outlines_at_once(self):
+        """
+        It replaced a button that swapped one polygon for another, which hid
+        half of the comparison the figure exists to make.
+        """
+        rendered = figures("[[figure:glyph-outline-slash-vs-yen]]")
+
+        self.assertEqual(rendered.count("<svg"), 2)
+        self.assertIn("U+002F", rendered)
+        self.assertIn("U+005C", rendered)
+        self.assertNotIn("<button", rendered)
+        self.assertNotIn("aria-pressed", rendered)
+
+    def test_svg_figures_carry_an_accessible_name(self):
+        rendered = figures("[[figure:glyph-outline-slash-vs-yen]]")
+
+        self.assertEqual(rendered.count('role="img"'), 2)
+        self.assertEqual(rendered.count("aria-label"), 2)
+
+    def test_the_nixie_green_is_the_one_documented_exception(self):
+        """
+        A prop, not a piece of interface — a tube glows the same colour in both
+        themes. The hex lives in post-body.css, not in the partial.
+        """
+        rendered = figures("[[figure:divergence-meter]]")
+
+        self.assertIn("fig-nixie", rendered)
+        self.assertNotIn("#3fbf6f", rendered)
+
+
+class PostPageFigureTests(TestCase):
+    """The filter as the post page actually uses it, end to end."""
+
+    def setUp(self):
+        self.owner = User.objects.create_user("author", password="pw")
+        self.post = Post.objects.create(
+            title="Post With A Figure",
+            content="<p>lede</p>\n[[figure:ms-ui-gothic-widths]]\n<p>after</p>",
+            owner=self.owner,
+        )
+
+    def test_the_token_is_expanded_in_the_rendered_page(self):
+        response = self.client.get(reverse("website_app:post", args=[self.post.slug]))
+
+        self.assertNotContains(response, "[[figure:")
+        self.assertContains(response, "fig-bar-fill")
+
+    def test_the_post_page_loads_the_figure_stylesheet(self):
+        """
+        Figure chrome and the post-body prose classes are only ever needed here,
+        so they are not folded into style.css — but the file must actually be
+        linked, or every figure renders unstyled.
+        """
+        response = self.client.get(reverse("website_app:post", args=[self.post.slug]))
+
+        self.assertContains(response, "post-body")
+
+    def test_the_blog_list_does_not_load_it(self):
+        response = self.client.get(reverse("website_app:blog"))
+
+        self.assertNotContains(response, "post-body")
+
+    def test_a_body_with_a_token_is_still_ordinary_prose_for_the_excerpt(self):
+        """
+        A token is text, so strip_tags leaves it alone. Without strip_figures the
+        literal `[[figure:ms-ui-gothic-widths]]` opened the RSS summary and the
+        meta description — which is how this was caught.
+        """
+        excerpt = self.post.excerpt()
+
+        self.assertNotIn("[[figure:", excerpt)
+        self.assertEqual(excerpt, "lede after")
+
+    def test_the_token_does_not_reach_the_page_metadata(self):
+        response = self.client.get(reverse("website_app:post", args=[self.post.slug]))
+
+        self.assertNotContains(response, "[[figure:")
+
+    def test_the_token_does_not_reach_the_feed(self):
+        response = self.client.get(reverse("website_app:feed"))
+
+        self.assertNotContains(response, "[[figure:")
+
+
+class PostAdminRawHtmlTests(TestCase):
+    """
+    Covers the one thing standing between a rich post body and the database:
+    the admin's `content` widget.
+
+    `Post.content` is a django-tinymce `HTMLField`, which is a plain TextField
+    plus a widget — nothing is sanitised on save, and post.html renders it
+    through the `figures` filter, which marks it safe. So bodies published by
+    scripts/publish_post.py keep their inline
+    <style>, <svg> and <script>, and the only thing that destroys them is the
+    editor rewriting the field in the browser. `raw_html` turns the editor off.
+
+    Note what these tests can and cannot show: the mangling itself is
+    client-side, so no Django test can reproduce it. What is asserted here is
+    that the widget is swapped, that the swap is per-object, and that a full
+    admin round trip returns the body byte for byte.
+    """
+
+    RAW_BODY = (
+        "<style>.fx { color: var(--accent); }</style>\n"
+        '<div class="fx"><p>prose</p>\n'
+        '<svg viewBox="0 0 10 10"><polygon points="0,0 10,0 10,10"/></svg></div>\n'
+        '<script>(function () { if (1 < 2) console.log("x"); })();</script>'
+    )
+
+    def setUp(self):
+        self.owner = User.objects.create_superuser("author", password="pw")
+        self.raw = Post.objects.create(
+            title="Raw body post",
+            content=self.RAW_BODY,
+            owner=self.owner,
+            raw_html=True,
+        )
+        self.rich = Post.objects.create(
+            title="Ordinary post", content="<p>hi</p>", owner=self.owner
+        )
+        self.admin = PostAdmin(Post, site)
+        self.request = RequestFactory().get("/")
+        self.request.user = self.owner
+
+    def _content_widget(self, obj):
+        form = self.admin.get_form(self.request, obj)
+        return form.base_fields["content"].widget
+
+    def test_raw_post_is_edited_as_source_not_in_the_editor(self):
+        widget = self._content_widget(self.raw)
+
+        self.assertNotIsInstance(widget, TinyMCE)
+        self.assertIsInstance(widget, forms.Textarea)
+
+    def test_ordinary_post_still_gets_the_rich_text_editor(self):
+        self.assertIsInstance(self._content_widget(self.rich), TinyMCE)
+
+    def test_the_add_form_gets_the_rich_text_editor(self):
+        """obj is None on the add view, so there is no flag to read yet."""
+        self.assertIsInstance(self._content_widget(None), TinyMCE)
+
+    def test_the_swap_does_not_leak_between_objects(self):
+        """
+        The widget is replaced on the form class, so a leak would silently turn
+        the editor off site-wide. ModelAdmin builds a fresh class per call.
+        """
+        self._content_widget(self.raw)
+
+        self.assertIsInstance(self._content_widget(self.rich), TinyMCE)
+
+    def test_raw_field_explains_why_the_editor_is_off(self):
+        form = self.admin.get_form(self.request, self.raw)
+        help_text = form.base_fields["content"].help_text
+
+        self.assertIn("Raw HTML", help_text)
+        self.assertIn("publish_post.py", help_text)
+
+    def test_saving_a_raw_post_through_the_admin_keeps_the_body_verbatim(self):
+        """
+        The regression this whole flag exists to prevent: opening a published
+        post in the admin and pressing Save used to come back with the demos
+        gone. Nothing server-side rewrites the body, so an unchanged POST must
+        round-trip byte for byte.
+        """
+        self.client.force_login(self.owner)
+        url = reverse("admin:website_app_post_change", args=[self.raw.pk])
+
+        response = self.client.post(
+            url,
+            {
+                "title": self.raw.title,
+                "content": self.RAW_BODY,
+                "raw_html": "on",
+                "slug": self.raw.slug,
+                "owner": self.owner.pk,
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.raw.refresh_from_db()
+        self.assertEqual(self.raw.content, self.RAW_BODY)
+        self.assertTrue(self.raw.raw_html)
+
+    def test_editing_the_title_in_the_admin_does_not_move_the_url(self):
+        """
+        The second trap of the same family as the widget one: publish_post.py
+        hands out slugs that do not match the title, so re-deriving on save
+        would break every inbound link on the first copy edit.
+        """
+        self.client.force_login(self.owner)
+        Post.objects.filter(pk=self.raw.pk).update(slug="arpa-domain")
+        url = reverse("admin:website_app_post_change", args=[self.raw.pk])
+
+        response = self.client.post(
+            url,
+            {
+                "title": "A completely different title",
+                "content": self.RAW_BODY,
+                "raw_html": "on",
+                "slug": "arpa-domain",
+                "owner": self.owner.pk,
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.raw.refresh_from_db()
+        self.assertEqual(self.raw.slug, "arpa-domain")
+        self.assertEqual(self.raw.title, "A completely different title")
+
+    def test_a_raw_body_reaches_the_page_unescaped(self):
+        """The other half of the contract: post.html renders content |safe."""
+        response = self.client.get(reverse("website_app:post", args=[self.raw.slug]))
+
+        self.assertContains(response, "<style>.fx { color: var(--accent); }</style>")
+        self.assertContains(response, "<polygon")
+        self.assertContains(response, "<script>(function () {")
+
+    def test_raw_html_defaults_to_off(self):
+        """New posts written through the admin are ordinary rich-text posts."""
+        self.assertFalse(self.rich.raw_html)
+
+
+class RawHtmlBackfillTests(TestCase):
+    """
+    Migration 0011 flags the posts that were already published before the flag
+    existed. Without the backfill the trap stays armed on exactly the posts
+    that cannot survive it, so the predicate is worth pinning down.
+
+    `Post.body_needs_raw_html` is the runtime twin, used by publish_post.py to
+    set the flag from the body rather than by hand. The migration keeps its own
+    frozen copy so that editing the model cannot change what an already-applied
+    migration meant — these tests hold the two in step.
+    """
+
+    BODIES_NEEDING_RAW = (
+        "<style>.fx {}</style><p>x</p>",
+        "<p>x</p><script>1</script>",
+        '<svg viewBox="0 0 1 1"></svg>',
+        "<P>x</P><SCRIPT>1</SCRIPT>",
+    )
+
+    ORDINARY_BODIES = (
+        "<p>just words</p>",
+        '<p><img src="/media/media_files/nvim.webp" alt=""></p>',
+        "<h2>Heading</h2><ul><li>item</li></ul>",
+        '<p>prose</p>[[figure:ms-ui-gothic-widths]]<div class="post-note">x</div>',
+        "",
+        None,
+    )
+
+    def test_bodies_the_editor_cannot_represent_are_flagged(self):
+        for body in self.BODIES_NEEDING_RAW:
+            with self.subTest(body=body):
+                self.assertTrue(needs_raw_html(body))
+
+    def test_ordinary_prose_is_left_alone(self):
+        for body in self.ORDINARY_BODIES:
+            with self.subTest(body=body):
+                self.assertFalse(needs_raw_html(body))
+
+    def test_the_runtime_predicate_agrees_with_the_migration(self):
+        for body in self.BODIES_NEEDING_RAW + self.ORDINARY_BODIES:
+            with self.subTest(body=body):
+                self.assertEqual(Post.body_needs_raw_html(body), needs_raw_html(body))
+
+    def test_a_token_only_body_needs_no_raw_flag(self):
+        """
+        Which is the whole point of the figure mechanism: once the diagrams are
+        tokens, the body is prose and the rich-text editor is safe again.
+        """
+        body = (
+            '<p class="post-lede">lede</p>\n'
+            "[[figure:ms-ui-gothic-widths]]\n"
+            '<div class="post-note">a note</div>\n'
+            '<table class="post-table"><tr><td class="num">1</td></tr></table>'
+        )
+
+        self.assertFalse(Post.body_needs_raw_html(body))

@@ -1,0 +1,53 @@
+{% comment %}
+MS UI Gothic advance widths — the bar chart from /blog/arpa-domain/.
+
+Font units at 1000/em, so 190 (M, W) is the widest and sets 100%. The widths are
+written inline rather than animated in by an IntersectionObserver, as they were
+when this lived in the post body: the animation was the only reason the figure
+needed JavaScript, and a bar chart that starts at zero width is a chart that is
+wrong until you scroll to it.
+
+The tracks are aria-hidden because they encode nothing the adjacent number does
+not already say — a screen reader gets "slash 128", not a decorative rectangle.
+{% endcomment %}
+<figure class="fig">
+  <div class="fig-head">
+    <span class="fig-label">MS UI Gothic <b>advance widths</b> &middot; font units, 1000/em</span>
+  </div>
+  <div class="fig-stage fig-stage-flush">
+    <div class="fig-bar-row">
+      <span class="fig-bar-label">. :</span>
+      <div class="fig-bar-track" aria-hidden="true"><div class="fig-bar-fill" style="width: 27%"></div></div>
+      <span class="fig-bar-val">52</span>
+    </div>
+    <div class="fig-bar-row">
+      <span class="fig-bar-label">|</span>
+      <div class="fig-bar-track" aria-hidden="true"><div class="fig-bar-fill" style="width: 32%"></div></div>
+      <span class="fig-bar-val">60</span>
+    </div>
+    <div class="fig-bar-row">
+      <span class="fig-bar-label">_</span>
+      <div class="fig-bar-track" aria-hidden="true"><div class="fig-bar-fill" style="width: 41%"></div></div>
+      <span class="fig-bar-val">78</span>
+    </div>
+    <div class="fig-bar-row">
+      <span class="fig-bar-label">/</span>
+      <div class="fig-bar-track" aria-hidden="true"><div class="fig-bar-fill" style="width: 67%"></div></div>
+      <span class="fig-bar-val">128</span>
+    </div>
+    <div class="fig-bar-row">
+      <span class="fig-bar-label">\</span>
+      <div class="fig-bar-track" aria-hidden="true"><div class="fig-bar-fill" style="width: 68%"></div></div>
+      <span class="fig-bar-val">129</span>
+    </div>
+    <div class="fig-bar-row">
+      <span class="fig-bar-label">M W</span>
+      <div class="fig-bar-track" aria-hidden="true"><div class="fig-bar-fill" style="width: 100%"></div></div>
+      <span class="fig-bar-val">190</span>
+    </div>
+  </div>
+  <figcaption class="fig-foot">
+    Thirteen distinct values across the glyphs this logo uses. Even the two
+    slashes disagree by one unit.
+  </figcaption>
+</figure>

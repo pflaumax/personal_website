@@ -7,7 +7,11 @@ A personal website built with Django, featuring a blog with a rich-text CMS, a t
 
 ## Features
 
-- **Blog** — Rich-text posts managed via TinyMCE in the Django admin. Posts use auto-generated unique slugs and support embedded images and audio. Each post carries a link back to the list, a share row (Bluesky, email, copy link) and a back-to-top control that only appears when the page is actually long enough to need one.
+- **Blog** — Rich-text posts managed via TinyMCE in the Django admin. A post's slug is derived from its title on the first save and then left alone, so editing a title never moves a published URL — clear the slug field to ask for a new one. Posts support embedded images and audio. Each post carries a link back to the list, a share row (Bluesky, email, copy link) and a back-to-top control that only appears when the page is actually long enough to need one.
+
+- **Raw-HTML Posts** — Some bodies carry inline `<style>`, `<svg>` and `<script>`, which TinyMCE's default allowlist has no elements for: it rewrites the field when the form *loads*, so merely opening such a post and pressing Save used to destroy it. `Post.raw_html` switches the admin's `content` field to a plain source textarea for those posts, and `scripts/publish_post.py` sets the flag from the body itself — a body built out of figure tokens gets the rich-text editor back. Nothing is sanitised on the way out either, so the source file under `media_for_blogposts/` stays the source of truth; note that directory is gitignored, so that file is the only copy. `publish_post.py --diff <slug> <path>` reports whether the stored body still matches it.
+
+- **Post Figures** — Charts, glyph outlines and other diagrams are template partials in `website_app/templates/website_app/figures/`, pulled into a body by a `[[figure:name]]` token that a `figures` template filter expands at render time. The point is that the editor cannot break a token: the prose around it stays editable in TinyMCE while the figure keeps its own CSS (`static/website_app/css/post-body.css`, loaded only on post pages) and lives in git. Figures consume the site's theme tokens, so they follow light and dark with no palette of their own — the one hard-coded colour is the Divergence Meter's nixie green, which is a prop rather than interface. None of them need JavaScript: every demo that had a script turned out to be an animation, a toggle that hid half of a comparison, or a clock. An unknown name is left on the page verbatim and logged rather than raising.
 
 - **RSS Feed** — `/feed/` via `django.contrib.syndication`, also advertised in `<head>` for reader auto-discovery. Served as `application/xml` rather than `application/rss+xml` so browsers render it instead of downloading a file.
 
@@ -54,7 +58,8 @@ personal_website/
 │   ├── feeds.py          # RSS feed at /feed/
 │   ├── projects_data.py  # The project list — one source for /projects/ and home
 │   ├── media_urls.py     # Legacy S3 → local media URL rewriting
-│   ├── templates/        # HTML templates (base, pages, error pages)
+│   ├── templatetags/     # figures.py — expands [[figure:name]] in post bodies
+│   ├── templates/        # HTML templates (base, pages, figures, error pages)
 │   └── static/           # CSS, JS, images, fonts, sounds
 ├── tools/                # Tools app — Todo List & Pomodoro Timer
 ├── stats/                # Page view analytics app
@@ -62,7 +67,7 @@ personal_website/
 │   ├── middleware.py     # Request tracking middleware
 │   ├── purge.py          # Shared admin-path purge helper
 │   └── views.py          # JSON stats API (staff-only)
-├── scripts/              # Utility scripts (migrate, create superuser)
+├── scripts/              # Utility scripts (migrate, create superuser, publish_post)
 ├── deployment/           # Raspberry Pi deployment guides & scripts
 ├── .github/workflows/    # GitHub Actions (healthcheck ping)
 ├── requirements.txt      # Production dependencies

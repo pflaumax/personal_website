@@ -1,5 +1,14 @@
 {% extends "website_app/base.html" %}
 {% load static %}
+{% load figures %}
+
+{% comment %}Figure chrome and the post-body prose classes are only ever needed
+on a post page, so they are not folded into style.css. See
+website_app/figures.py.{% endcomment %}
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'website_app/css/post-body.css' %}"/>
+{% endblock extra_head %}
+
 {% block content %}
 
 {% comment %}The way out of the page sits above the title, where the reading
@@ -15,8 +24,12 @@ is chrome, not content.{% endcomment %}
     </div>
   </header>
 
+  {% comment %}`figures` replaces the old `|safe`: it expands [[figure:name]]
+  tokens and returns the body as a safe string. Post.content has always been
+  served verbatim — the source file under media_for_blogposts/ is the source of
+  truth for the posts that still carry raw markup.{% endcomment %}
   <div class="post-content">
-    {{ post.content|safe }}
+    {{ post.content|figures }}
   </div>
 
   {% comment %}Three targets, all of them open and none of them advertising-funded.

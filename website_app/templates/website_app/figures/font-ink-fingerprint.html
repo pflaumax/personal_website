@@ -1,0 +1,34 @@
+{% comment %}
+Ink/width fingerprint per font — the table from /blog/arpa-domain/.
+
+The numbers are the ones measured while writing the post. The body version also
+carried a "Measure in this browser" button that drew the same string to a canvas
+and appended the reader's own row. That is the one piece of interactivity in the
+post with real value, and it is the one thing lost by moving out of the body —
+but the argument the figure makes is the spread between these six rows, and the
+six rows make it on their own.
+{% endcomment %}
+<figure class="fig">
+  <div class="fig-head">
+    <span class="fig-label">canvas <b>fillText</b> &rarr; count opaque pixels &rarr; ink/width fingerprint</span>
+  </div>
+  <div class="fig-stage fig-stage-flush">
+    <table class="post-table">
+      <thead>
+        <tr><th>page stack</th><th class="num">ink</th><th class="num">width</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>declared stack</td><td class="num">1898</td><td class="num">328</td></tr>
+        <tr><td>Monaspace Krypton</td><td class="num">1898</td><td class="num">328</td></tr>
+        <tr><td>Monaspace Neon</td><td class="num">1948</td><td class="num">328</td></tr>
+        <tr><td>Monaspace Xenon</td><td class="num">2076</td><td class="num">329</td></tr>
+        <tr><td>SF Mono</td><td class="num">1784</td><td class="num">287</td></tr>
+        <tr><td>Menlo</td><td class="num">2015</td><td class="num">319</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <figcaption class="fig-foot">
+    Ink coverage plus advance is a fingerprint. It identified the rendered face
+    unambiguously, and it caught me being wrong twice.
+  </figcaption>
+</figure>

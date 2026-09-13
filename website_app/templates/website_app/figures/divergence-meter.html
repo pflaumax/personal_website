@@ -1,0 +1,21 @@
+{% comment %}
+Divergence Meter — the nixie readout from /blog/arpa-domain/.
+
+Frozen at the canonical reading. In the post body this ran on a setInterval and
+had a Pause button, which is a lot of machinery for a decorative clock inside an
+article about the page that already has a real one. The green is deliberate and
+does not follow the theme; see .fig-nixie in post-body.css.
+{% endcomment %}
+<figure class="fig">
+  <div class="fig-head">
+    <span class="fig-label">seven <code>&lt;span&gt;</code>s &middot; <b>text-shadow</b> glow, last digit randomised</span>
+  </div>
+  <div class="fig-stage">
+    <div class="fig-specimen fig-nixie">1.048596</div>
+  </div>
+  <figcaption class="fig-foot">
+    Agreeing with real time on purpose about six digits out of seven &mdash; the
+    last one lies. Frozen here; on the page itself it re-reads the clock once a
+    second.
+  </figcaption>
+</figure>

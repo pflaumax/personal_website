@@ -9,6 +9,8 @@ from django.utils.html import strip_tags
 from django.utils.text import slugify
 from tinymce.models import HTMLField
 
+from .figures import strip_figures
+
 logger = logging.getLogger(__name__)
 
 
@@ -71,6 +73,19 @@ class Post(models.Model):
 
     title = models.CharField(max_length=200)
     content = HTMLField()
+    # Posts whose body carries inline <style>, <svg> or <script> cannot survive
+    # a round trip through TinyMCE: its default allowlist has none of those
+    # elements, and it rewrites the body when the form *loads*, so merely
+    # opening such a post and pressing Save destroys it. This flag tells the
+    # admin to edit the field as source text instead. See PostAdmin.get_form.
+    raw_html = models.BooleanField(
+        default=False,
+        verbose_name="edit as raw HTML",
+        help_text=(
+            "The body contains inline style, SVG or script that TinyMCE would "
+            "strip. Edit it as source text instead of in the rich-text editor."
+        ),
+    )
     date_added = models.DateField(auto_now_add=True)
     slug = models.SlugField(unique=True, blank=True)
     owner = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -86,6 +101,20 @@ class Post(models.Model):
     EXCERPT_LENGTH = 320
     META_DESCRIPTION_LENGTH = 155
 
+    # Elements TinyMCE's default allowlist has nothing for. A body containing
+    # one of these cannot be opened in the rich-text editor without being
+    # rewritten, which is what `raw_html` exists to prevent.
+    #
+    # Migration 0011 carries its own frozen copy of this list on purpose: an
+    # applied migration must not change meaning when this one is edited.
+    RAW_MARKERS = ("<style", "<script", "<svg")
+
+    @classmethod
+    def body_needs_raw_html(cls, content):
+        """True if `content` would not survive a round trip through TinyMCE."""
+        lowered = (content or "").lower()
+        return any(marker in lowered for marker in cls.RAW_MARKERS)
+
     # strip_tags drops the tags but keeps whatever sits between them, so a post
     # carrying an inline <style> or <script> block would otherwise open its
     # excerpt — and its RSS summary, and its meta description — with raw CSS.
@@ -97,9 +126,13 @@ class Post(models.Model):
         strip_tags removes tags but leaves entities, so unescape once here —
         otherwise a stored `&nbsp;` survives as literal text and whatever
         renders it escapes the ampersand again, so readers see `&amp;nbsp;`.
+
+        Figure tokens go first: they are plain text, so strip_tags has nothing
+        to remove and a literal `[[figure:name]]` would otherwise open the RSS
+        summary and the meta description.
         """
         limit = self.EXCERPT_LENGTH if length is None else length
-        body = self._NON_PROSE.sub(" ", self.content)
+        body = self._NON_PROSE.sub(" ", strip_figures(self.content))
         text = " ".join(html.unescape(strip_tags(body)).split())
         if len(text) <= limit:
             return text
@@ -119,20 +152,21 @@ class Post(models.Model):
         return reverse("website_app:post", kwargs={"slug": self.slug})
 
     def save(self, *args, **kwargs):
-        """
-        Generate a unique slug on save, only if title is new or has changed.
-        """
-        if not self.slug or self.title_has_changed():
-            new_slug = slugify(self.title)
-            self.slug = self.get_unique_slug(new_slug)
-        super().save(*args, **kwargs)
+        """Derive the slug on the first save only, so permalinks stay put.
 
-    def title_has_changed(self):
-        """Check if the title has changed for existing posts."""
-        if self.pk:
-            original = Post.objects.get(pk=self.pk)
-            return original.title != self.title
-        return True  # For new post always generate slug
+        The slug used to be re-derived whenever the title changed. That quietly
+        moved a published post's URL, and it was worse for posts whose slug was
+        chosen by hand (scripts/publish_post.py): `/blog/arpa-domain/` would
+        have become the whole title, slugified, on the first typo fix in the
+        admin. A title is editable copy; a URL is a promise.
+
+        The slug field is editable and `blank=True`, so a deliberate rename is
+        still possible — type a new one, or clear the field to ask for a fresh
+        one derived from the current title.
+        """
+        if not self.slug:
+            self.slug = self.get_unique_slug(slugify(self.title))
+        super().save(*args, **kwargs)
 
     def get_unique_slug(self, base_slug):
         """Generate a unique slug by adding a number suffix if necessary."""

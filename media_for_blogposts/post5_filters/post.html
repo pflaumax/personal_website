@@ -1,0 +1,361 @@
+<!-- =====================================================================
+     Noise and Displacement — post body.
+     Everything is scoped under .fx and consumes the site's own tokens
+     (--bg, --text, --accent, --mark …), so both themes follow the page
+     with no palette of its own. Ids are fx- prefixed to avoid colliding
+     with the sprite and the grain filter already in style.css.
+     Inserted into the DB by scripts/publish_post.py — NOT through the
+     TinyMCE admin form, which strips script tags and mangles inline SVG.
+     ===================================================================== -->
+
+<style>
+.fx { --fx-step: 1.5rem; }
+.fx h2 { margin: 2.4rem 0 .8rem; }
+.fx h3 { margin: 2rem 0 .6rem; font-size: 1rem; letter-spacing: .02em; }
+.fx .fx-lede { font-size: 1.05em; }
+.fx .fx-note {
+  border-left: 3px solid var(--accent);
+  padding: .7rem 0 .7rem 1rem;
+  margin: 1.4rem 0;
+  background: var(--surface-2);
+}
+.fx .fx-note strong { font-weight: 600; }
+
+/* --- the bench: one demo, its pipeline, its dials ------------------- */
+.fx .fx-bench {
+  border: 1px solid var(--rule);
+  background: var(--surface-2);
+  margin: 1.4rem 0 2rem;
+}
+.fx .fx-head {
+  display: flex; flex-wrap: wrap; gap: .6rem;
+  align-items: center; justify-content: space-between;
+  padding: .55rem .8rem;
+  border-bottom: 1px solid var(--rule-soft);
+  font-size: .78em;
+}
+.fx .fx-pipe { color: var(--muted); }
+.fx .fx-pipe b { color: var(--text); font-weight: 600; }
+.fx button.fx-toggle {
+  font: inherit; font-size: .95em;
+  padding: .3rem .7rem;
+  border: 1px solid var(--accent);
+  background: transparent; color: var(--accent);
+  cursor: pointer;
+}
+.fx button.fx-toggle:hover { background: var(--mark); }
+.fx button.fx-toggle[aria-pressed="true"] { background: var(--accent); color: var(--bg); }
+.fx .fx-stage {
+  min-height: 150px;
+  display: flex; align-items: center; justify-content: center;
+  padding: 1.6rem 1rem; overflow: hidden;
+}
+.fx .fx-foot {
+  padding: .55rem .8rem;
+  border-top: 1px solid var(--rule-soft);
+  font-size: .78em; color: var(--muted);
+}
+.fx .fx-dials {
+  display: flex; flex-wrap: wrap; gap: 1rem;
+  padding: .6rem .8rem; border-top: 1px solid var(--rule-soft);
+  font-size: .78em;
+}
+.fx .fx-dial { display: flex; align-items: center; gap: .5rem; }
+.fx .fx-dial input[type="range"] { width: 110px; accent-color: var(--accent); }
+.fx .fx-dial output { min-width: 2.6em; color: var(--accent); }
+
+/* --- specimens ------------------------------------------------------ */
+.fx .fx-specimen {
+  font-size: 2.1rem; font-weight: 700; letter-spacing: .01em;
+  color: var(--text); text-align: center; line-height: 1.15;
+}
+.fx .melted { filter: url(#fx-melt); }
+.fx .fx-sheet { max-width: 34ch; position: relative; padding: 1rem; }
+.fx .fx-sheet.on { filter: url(#fx-sketch); }
+.fx .fx-grain-sheet {
+  position: relative; background: var(--px-ground, var(--bg));
+  border: 1px solid var(--rule); padding: 1.1rem; max-width: 36ch;
+}
+.fx .fx-grain-layer {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  opacity: 0; pointer-events: none; mix-blend-mode: var(--grain-blend, multiply);
+}
+.fx .fx-grain-sheet.on .fx-grain-layer { opacity: 1; }
+.fx .fx-blobs { display: flex; gap: 26px; }
+.fx .fx-blobs .fx-blob {
+  width: 54px; height: 54px; border-radius: 50%;
+  background: var(--accent); display: block;
+  transition: margin .6s ease;
+}
+.fx .fx-blobs.merged .fx-blob { margin: 0 -22px; }
+.fx .fx-crt {
+  background: #14140f; color: #d8d2be; padding: 1.4rem 2rem;
+  font-size: 1.5rem; font-weight: 700; letter-spacing: .12em;
+}
+.fx .fx-crt.on { filter: url(#fx-chroma); }
+.fx .fx-photo {
+  width: 230px; height: 130px;
+  background:
+    radial-gradient(circle at 74% 26%, #f6d98a 0 16px, transparent 17px),
+    linear-gradient(#8fc4e8 0 46%, #7fae76 46% 100%);
+}
+.fx .fx-photo.on { filter: url(#fx-duotone); }
+.fx .fx-sticker.on { filter: url(#fx-sticker); }
+
+/* --- cost list ------------------------------------------------------ */
+.fx .fx-costs { margin: 1.2rem 0; }
+.fx .fx-cost { border-top: 1px solid var(--rule-soft); padding: .8rem 0; }
+.fx .fx-cost dt { font-weight: 700; margin-bottom: .25rem; }
+.fx .fx-cost dd { margin: 0; color: var(--muted); }
+.fx .fx-colophon {
+  margin-top: 2.4rem; padding-top: 1rem;
+  border-top: 1px solid var(--rule);
+  font-size: .8em; color: var(--muted);
+}
+@media (prefers-reduced-motion: reduce) {
+  .fx .fx-blobs .fx-blob { transition: none; }
+}
+</style>
+
+<!-- Every filter on the page. Hidden with visibility, not display —
+     display:none can stop a filter reference resolving. -->
+<svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"
+     style="position:absolute;width:1px;height:1px;visibility:hidden">
+  <defs>
+    <filter id="fx-melt">
+      <feTurbulence id="fx-melt-noise" type="fractalNoise" baseFrequency="0.1" numOctaves="1" seed="4"/>
+      <feDisplacementMap id="fx-melt-map" in="SourceGraphic" scale="15" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+    <filter id="fx-gooey">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="10" result="soft"/>
+      <feColorMatrix in="soft" type="matrix"
+                     values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 24 -11"/>
+    </filter>
+    <filter id="fx-grain">
+      <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="2" stitchTiles="stitch"/>
+      <feColorMatrix type="saturate" values="0"/>
+      <feComponentTransfer><feFuncA type="linear" slope="0.33"/></feComponentTransfer>
+    </filter>
+    <filter id="fx-sketch">
+      <feTurbulence type="fractalNoise" baseFrequency="0.022" numOctaves="3" seed="7"/>
+      <feDisplacementMap in="SourceGraphic" scale="2.4" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+    <filter id="fx-chroma">
+      <feOffset in="SourceGraphic" dx="-3.5" dy="0" result="l"/>
+      <feColorMatrix in="l" type="matrix" values="1 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0" result="red"/>
+      <feOffset in="SourceGraphic" dx="3.5" dy="0" result="r"/>
+      <feColorMatrix in="r" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 1 0 0  0 0 0 1 0" result="blue"/>
+      <feColorMatrix in="SourceGraphic" type="matrix" values="0 0 0 0 0  0 1 0 0 0  0 0 0 0 0  0 0 0 1 0" result="green"/>
+      <feBlend in="red" in2="green" mode="screen" result="rg"/>
+      <feBlend in="rg" in2="blue" mode="screen"/>
+    </filter>
+    <filter id="fx-duotone" color-interpolation-filters="sRGB">
+      <feColorMatrix type="matrix"
+                     values="0.2126 0.7152 0.0722 0 0  0.2126 0.7152 0.0722 0 0  0.2126 0.7152 0.0722 0 0  0 0 0 1 0"/>
+      <feComponentTransfer>
+        <feFuncR type="table" tableValues="0.12 0.70"/>
+        <feFuncG type="table" tableValues="0.32 0.93"/>
+        <feFuncB type="table" tableValues="0.20 0.79"/>
+      </feComponentTransfer>
+    </filter>
+    <filter id="fx-sticker">
+      <feMorphology in="SourceAlpha" operator="dilate" radius="3.5" result="fat"/>
+      <feFlood flood-color="#3fbf6f" result="ink"/>
+      <feComposite in="ink" in2="fat" operator="in" result="ring"/>
+      <feMerge><feMergeNode in="ring"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+</svg>
+
+<div class="fx">
+
+<p class="fx-lede">Every browser ships a small image-processing language that almost nobody uses. It is older than the web, it came out of a film, and there is already one running quietly underneath this page.</p>
+
+<h2>It started with someone annoyed at a film</h2>
+<p>In 1983 Ken Perlin was working on the computer graphics for <em>Tron</em>, and what bothered him was how <em>clean</em> everything looked. Real surfaces have grain, drift, irregularity. Machines produce flat planes and exact edges, and the eye reads that instantly as fake.</p>
+<p>So he wrote a function that manufactures believable irregularity — not scattered random dots, but smooth drifting cloud, the way smoke and marble and water are irregular. It is called Perlin noise, it is in every game engine and every 3D package you have ever opened, and it won him a technical Academy Award in 1997.</p>
+<p>The second ingredient came from Photoshop. Its <em>Displace</em> filter takes an image and a second image called a displacement map, then walks over every pixel asking the map one question: how bright are you here? The brighter the answer, the further that pixel gets pushed.</p>
+<p>When SVG was specified around 2001, the people in the room came out of Adobe and the PostScript tradition, and they did not invent new effects. They took Photoshop's filter pipeline and wrote it down as XML. The spec even carries reference C code for the noise function, so every browser would generate the <em>same</em> clouds.</p>
+<div class="fx-note"><strong>So the melt below is a 1983 film technique feeding a 1990s Photoshop filter, standardised in 2001, running here with no library and nothing downloaded.</strong></div>
+
+<h2>Two boxes and a wire</h2>
+<p>A filter is a <strong>pipeline</strong>. Each stage takes an input, produces an output, and you chain them. The melt is the shortest useful chain there is: generate noise, then use it to shove pixels around.</p>
+<pre><code>&lt;filter id="melt"&gt;
+  &lt;!-- 1. make a cloud of coloured noise --&gt;
+  &lt;feTurbulence type="fractalNoise" baseFrequency="0.1" numOctaves="1" /&gt;
+
+  &lt;!-- 2. read that cloud as a map and push pixels by it --&gt;
+  &lt;feDisplacementMap in="SourceGraphic" scale="15"
+                     xChannelSelector="R" yChannelSelector="G" /&gt;
+&lt;/filter&gt;</code></pre>
+<p><code>xChannelSelector="R"</code> means <em>take the horizontal shove from the red channel of the noise</em>; green drives the vertical. <code>baseFrequency</code> sets how fine the cloud is, and <code>scale</code> is the furthest a pixel may travel. Two dials — turn them and watch what each one does.</p>
+
+<div class="fx-bench">
+  <div class="fx-head">
+    <span class="fx-pipe"><b>feTurbulence</b> &rarr; <b>feDisplacementMap</b></span>
+    <button class="fx-toggle" type="button" data-toggle="fx-melt-stage" data-class="melted" aria-pressed="false">Apply filter</button>
+  </div>
+  <div class="fx-stage"><div class="fx-specimen" id="fx-melt-stage">Ink on paper</div></div>
+  <div class="fx-dials">
+    <div class="fx-dial">
+      <label for="fx-freq">baseFrequency</label>
+      <input type="range" id="fx-freq" min="1" max="40" value="10">
+      <output id="fx-freq-out">0.10</output>
+    </div>
+    <div class="fx-dial">
+      <label for="fx-scale">scale</label>
+      <input type="range" id="fx-scale" min="0" max="40" value="15">
+      <output id="fx-scale-out">15</output>
+    </div>
+  </div>
+  <div class="fx-foot">Low frequency, high scale &mdash; slow syrupy drift. High frequency &mdash; a fine scribble. <code>scale</code> at 0 is the off switch.</div>
+</div>
+<p>Those two defaults &mdash; <code>baseFrequency="0.1"</code> and <code>scale="15"</code> &mdash; are not illustrative numbers. They are the exact values sitting in this site's own markup, because there is an easter egg on the home page built from this same pair of primitives: <a href="/">click the wordmark</a> and the whole page melts. It is a rebuild of the effect from <a href="https://github.com/henrik/fbergmanse" target="_blank" rel="noopener">fbergman.se</a>, where it is called a glitch rather than a melt.</p>
+
+<h2>The one already running under this page</h2>
+<p>This is not a hypothetical. The paper texture you are looking at right now &mdash; the very slight tooth on the background of this site &mdash; is <code>feTurbulence</code>, generated in the stylesheet as a data URI, with no image file involved and nothing to download.</p>
+<p>Because it is generated rather than tiled from a bitmap, it never seams and it costs about 400 bytes. <code>stitchTiles="stitch"</code> is what keeps the edges from showing when the field repeats.</p>
+<div class="fx-bench">
+  <div class="fx-head">
+    <span class="fx-pipe"><b>feTurbulence</b> &rarr; <b>feColorMatrix</b> &rarr; <b>feComponentTransfer</b></span>
+    <button class="fx-toggle" type="button" data-toggle="fx-sheet" data-class="on" aria-pressed="false">Add grain</button>
+  </div>
+  <div class="fx-stage">
+    <div class="fx-grain-sheet" id="fx-sheet">
+      <svg class="fx-grain-layer" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><rect width="100%" height="100%" filter="url(#fx-grain)"/></svg>
+      <p style="margin:0">A surface with tooth. The difference is small and you would not name it, but a perfectly smooth field is the one thing paper never is.</p>
+    </div>
+  </div>
+  <div class="fx-foot">Desaturate the noise to grey, then <code>feFuncA slope</code> sets its strength.</div>
+</div>
+<p>The part that took longest to get right was not the filter, it was the arithmetic around it. The grain is blended into the background &mdash; <code>multiply</code> on the light theme, <code>screen</code> on the dark one &mdash; and those two are not symmetrical. Multiply only ever darkens, so it tolerates a strong alpha. Screen <em>lifts</em> the whole surface, so the same strength that looks like paper in daylight washed the warm ink-brown out to a flat grey in the dark.</p>
+<p>Which means the strength dial and the background colour cannot be tuned independently. Screen raises the mean by roughly <code>slope &times; (255 &minus; bg)</code>, so turning the noise down also turns the <em>page</em> down. Both themes here are held at the same measured grain &sigma;, on purpose: it should read as one sheet of paper lit two ways, and a page that is grainier in the dark reads as two sheets.</p>
+<div class="fx-note"><strong>Change the slope and the base colour together, or the whole page shifts.</strong> That sentence is a comment in this site's stylesheet, written after finding out the hard way.</div>
+
+<h2>The rest of the box</h2>
+<p>There are around twenty of these primitives. Here are five more worth knowing, each running live &mdash; the pipeline printed above every specimen is the real chain it uses.</p>
+
+<h3>Gooey &mdash; the famous one</h3>
+<p>Blur the shapes heavily, then take the blurred alpha channel and crush its contrast so hard that anything faint snaps to nothing and anything half-there snaps to solid. Two shapes drifting together have overlapping blur haloes, the crush fuses them, and you get surface tension out of arithmetic. There is no physics here at all.</p>
+<div class="fx-bench">
+  <div class="fx-head">
+    <span class="fx-pipe"><b>feGaussianBlur</b> &rarr; <b>feColorMatrix</b></span>
+    <button class="fx-toggle" type="button" data-toggle="fx-blobs" data-class="merged" aria-pressed="false">Bring together</button>
+  </div>
+  <div class="fx-stage">
+    <div class="fx-blobs" id="fx-blobs" style="filter:url(#fx-gooey)">
+      <span class="fx-blob"></span><span class="fx-blob"></span><span class="fx-blob"></span>
+    </div>
+  </div>
+  <div class="fx-foot">The whole trick is the last row of the matrix: <code>0 0 0 24 -11</code> multiplies alpha by 24 and subtracts 11. Everything soft becomes hard.</div>
+</div>
+
+<h3>Drawn by hand</h3>
+<p>The melt again &mdash; same two primitives, same wiring &mdash; with <code>scale</code> dropped from 15 to about 2. That single number is the whole distance between <em>liquefied</em> and <em>sketched</em>. Straight rules go slightly wrong, corners stop being exact, and the block stops looking issued by a machine.</p>
+<div class="fx-bench">
+  <div class="fx-head">
+    <span class="fx-pipe"><b>feTurbulence</b> &rarr; <b>feDisplacementMap</b> <span style="opacity:.6">(scale 2.4)</span></span>
+    <button class="fx-toggle" type="button" data-toggle="fx-sketch-stage" data-class="on" aria-pressed="false">Roughen</button>
+  </div>
+  <div class="fx-stage">
+    <div class="fx-sheet" id="fx-sketch-stage">
+      <p><strong>Hand-drawn</strong> is a rendering choice, not a font.</p>
+      <p style="font-size:.78em;color:var(--muted);margin:0">&#9484;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9488;<br>&#9474; still a box &#9474;<br>&#9492;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9496;</p>
+    </div>
+  </div>
+  <div class="fx-foot">Sketchy interfaces are usually built this way rather than with hand-drawn assets.</div>
+</div>
+
+<h3>Chromatic aberration</h3>
+<p>Split the image into red, green and blue channels, slide two of them a few pixels apart, and screen them back together. Real lenses do this at the edges of the frame because glass bends colours by different amounts &mdash; which is why a fringe of red and cyan reads instantly as <em>lens</em>, or as a signal going wrong.</p>
+<div class="fx-bench">
+  <div class="fx-head">
+    <span class="fx-pipe"><b>feOffset</b> &rarr; <b>feColorMatrix</b> &rarr; <b>feBlend</b> <span style="opacity:.6">&times;3</span></span>
+    <button class="fx-toggle" type="button" data-toggle="fx-crt" data-class="on" aria-pressed="false">Break the signal</button>
+  </div>
+  <div class="fx-stage"><div class="fx-crt" id="fx-crt">NO SIGNAL</div></div>
+  <div class="fx-foot">Screen blending only recombines correctly on a dark ground, which is why this specimen brings its own.</div>
+</div>
+
+<h3>Duotone</h3>
+<p>First flatten the image to pure luminance, then re-map that single grey ramp onto two colours &mdash; darks to one, lights to the other. It is the treatment magazines use to make a page of mismatched photographs look like one commissioned set, and here it costs one filter and no second file.</p>
+<div class="fx-bench">
+  <div class="fx-head">
+    <span class="fx-pipe"><b>feColorMatrix</b> <span style="opacity:.6">(luminance)</span> &rarr; <b>feComponentTransfer</b></span>
+    <button class="fx-toggle" type="button" data-toggle="fx-photo" data-class="on" aria-pressed="false">Recolour</button>
+  </div>
+  <div class="fx-stage"><div class="fx-photo" id="fx-photo" role="img" aria-label="A synthetic landscape drawn in CSS"></div></div>
+  <div class="fx-foot"><code>tableValues="0.12 0.70"</code> per channel: the first number is where black lands, the second is where white lands.</div>
+</div>
+
+<h3>Sticker outline</h3>
+<p><code>feMorphology</code> fattens or erodes a shape's alpha. Dilate the silhouette, flood the fattened copy with a colour, and stack the original back on top &mdash; an outline that follows the actual glyph shapes, which <code>outline</code> and <code>border</code> cannot do because they only ever draw a rectangle.</p>
+<div class="fx-bench">
+  <div class="fx-head">
+    <span class="fx-pipe"><b>feMorphology</b> &rarr; <b>feFlood</b> &rarr; <b>feComposite</b> &rarr; <b>feMerge</b></span>
+    <button class="fx-toggle" type="button" data-toggle="fx-sticker-stage" data-class="on" aria-pressed="false">Cut it out</button>
+  </div>
+  <div class="fx-stage"><div class="fx-specimen fx-sticker" id="fx-sticker-stage">STICKER</div></div>
+  <div class="fx-foot">Works on text, icons and transparent images alike &mdash; anything with an alpha channel.</div>
+</div>
+
+<h2>What it costs</h2>
+<p>Filters are cheap in bytes and occasionally expensive in ways the tutorials skip. These four are the ones that actually bite.</p>
+<dl class="fx-costs">
+  <div class="fx-cost"><dt>Stacking</dt><dd>A filtered element creates a new stacking context. Descendants sitting at <code>z-index: -1</code> &mdash; a common way to build decorative layers &mdash; start behaving differently the moment a parent is filtered.</dd></div>
+  <div class="fx-cost"><dt>Fixed breaks</dt><dd>A filtered ancestor becomes the containing block for its descendants, so <code>position: fixed</code> inside it quietly turns into <code>absolute</code>. Anything pinned to the viewport starts scrolling with the page instead. This is the reason the melt on this site is restricted to the home page: it filters the whole container, and a post page has a floating back-to-top button pinned to the viewport, which would have been dragged along with the melting text.</dd></div>
+  <div class="fx-cost"><dt>Paint only</dt><dd>Filters change how things are drawn, never where they are. Hit testing still uses the real layout box, so a melted button is clicked where it <em>was</em>, not where it now appears. Usually a feature &mdash; it means a distorted page is still usable.</dd></div>
+  <div class="fx-cost"><dt>Static vs live</dt><dd>A static filter is rasterised once and then costs nothing. Animate a parameter and the browser regenerates the whole field every frame &mdash; full-page Perlin noise at 60fps is a completely different bill, and it is where filters got their bad reputation.</dd></div>
+</dl>
+<p>Support is universal in current browsers, with one historical wrinkle worth knowing: filters began as an SVG feature that applied to SVG. Aiming one at ordinary HTML through <code>filter: url(#id)</code> came later, with the Filter Effects spec &mdash; and that is the part that makes everything on this page possible.</p>
+
+<h2>Worth stealing</h2>
+<p>Grain earns its place on a text site: applied once and left on, it gives a flat background a material. That is the one I actually shipped and kept.</p>
+<p>Duotone is the one I shipped and then took back out, which is the more useful story. Applied to every screenshot in a post it does exactly what it promises &mdash; a pile of mismatched images starts looking like one commissioned set. The problem is what the images are <em>for</em>. One caption on this site reads &ldquo;VS Code Dracula theme with Monaspace Neon font&rdquo;, and a duotone destroys precisely the thing the caption is pointing at. Revealing the original on hover did not rescue it either: a tinted image carries no affordance saying <em>hover me</em>, and a touch screen has no hover at all, so phones were being shown a different site from laptops. What replaced it was much smaller &mdash; <code>sepia(.18) saturate(.92) brightness(.98)</code>, enough to seat a screenshot's white UI chrome into a cream page without touching a pixel of its information.</p>
+<div class="fx-note"><strong>The rule that came out of it: reach for these on decoration, not on evidence.</strong></div>
+<p>The melt is an easter egg, and easter eggs should stay rare enough to be a surprise. But it is worth knowing that the same two primitives which liquefy a page will, at <code>scale="2"</code>, quietly make it look drawn by hand.</p>
+
+<p class="fx-colophon">Every effect on this page is live &mdash; inline SVG, no images, no libraries, nothing loaded from anywhere. Perlin noise: Ken Perlin, 1983; SIGGRAPH &ldquo;An Image Synthesizer&rdquo;, 1985; Academy Award for Technical Achievement, 1997.</p>
+
+</div>
+
+<script>
+(function () {
+  "use strict";
+  var root = document.querySelector(".fx");
+  if (!root) return;
+
+  /* Each toggle names the element it acts on and the class it flips.
+     aria-pressed carries the state for anyone not looking at it. */
+  root.querySelectorAll("[data-toggle]").forEach(function (button) {
+    var target = document.getElementById(button.dataset.toggle);
+    if (!target) return;
+    button.addEventListener("click", function () {
+      var on = target.classList.toggle(button.dataset.class);
+      button.setAttribute("aria-pressed", on ? "true" : "false");
+    });
+  });
+
+  /* The dials write straight onto the filter primitives. There is no
+     animation loop — one attribute write, one repaint. */
+  var noise = document.getElementById("fx-melt-noise");
+  var map = document.getElementById("fx-melt-map");
+  var freq = document.getElementById("fx-freq");
+  var scale = document.getElementById("fx-scale");
+  var freqOut = document.getElementById("fx-freq-out");
+  var scaleOut = document.getElementById("fx-scale-out");
+
+  if (noise && map && freq && scale) {
+    var apply = function () {
+      var f = freq.value / 100;
+      noise.setAttribute("baseFrequency", f);
+      map.setAttribute("scale", scale.value);
+      freqOut.textContent = f.toFixed(2);
+      scaleOut.textContent = scale.value;
+    };
+    freq.addEventListener("input", apply);
+    scale.addEventListener("input", apply);
+    apply();
+  }
+})();
+</script>

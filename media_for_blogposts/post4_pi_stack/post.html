@@ -1,0 +1,86 @@
+<p>There is a small black box on a shelf in my apartment. Yesterday it answered 22,419 DNS queries, refused 3,321 of them, served this page, streamed a film to my TV, and posted to Bluesky forty-eight times. It sat at 59&deg;C and never once throttled.</p>
+<p>Here is what is on it, why each piece is there, and the one thing that went badly wrong.</p>
+<h2><span style="text-decoration: underline;">Hardware</span>: <strong>Raspberry Pi 5</strong></h2>
+<p style="padding-left: 40px;"><strong>&loz; The board</strong>: Raspberry Pi 5 Model B, 8GB of RAM, Debian 13 (trixie) on arm64.</p>
+<p style="padding-left: 40px;"><strong>&loz; The storage</strong>: a 115GB card for the system, and a 1.9TB external USB drive holding about 1.5TB of media &mdash; 793GB of series, 475GB of anime, 229GB of films.</p>
+<p>The drive is NTFS, which is not the obvious choice on Linux. It is there because the disk had a previous life on a Windows machine and I was not going to shuffle 1.5TB somewhere else just to reformat it. <code>ntfs-3g</code> handles it, mounted by UUID so it survives being unplugged.</p>
+<blockquote>
+<p><strong>&gt;Note</strong>: The 8GB model is not vanity. Most of that RAM ends up as write buffer for the torrent client, which is the difference between a smooth download and a drive grinding itself to death.</p>
+</blockquote>
+<h2><span style="text-decoration: underline;">Media</span>: <strong>Jellyfin and five friends</strong></h2>
+<p>Six Docker containers from one Compose file: <a title="Jellyfin" href="https://jellyfin.org/" target="_blank" rel="noopener">Jellyfin</a> as the media server, qBittorrent as the downloader, Prowlarr, Radarr and Sonarr for automation, and FlareSolverr, a proxy that exists purely to get past Cloudflare challenges on indexer sites.</p>
+<p>The setup was the easy half. The tuning was the half that mattered, because out of the box qBittorrent will happily destroy a mechanical USB drive attached to an ARM board. Three settings fixed it:</p>
+<p style="padding-left: 40px;"><strong>&loz; Pre-allocate disk space</strong>: <strong>off</strong>. Reserving 40GB up front on a spinning USB disk locks the whole thing up for minutes.</p>
+<p style="padding-left: 40px;"><strong>&loz; Asynchronous I/O threads</strong>: <strong>2</strong>, down from the default 10. Ten threads means ten places on the platter the drive head is trying to be at once.</p>
+<p style="padding-left: 40px;"><strong>&loz; Memory limit</strong>: <strong>1GB</strong>. This is what the spare RAM is for &mdash; buffer in memory, write to disk in large sequential chunks.</p>
+<p>Also worth doing: append <code>.!qB</code> to incomplete files, so Jellyfin does not index half a film and leave a broken entry in the library.</p>
+<h2><span style="text-decoration: underline;">Web</span>: <strong>Django behind a tunnel</strong></h2>
+<p>This site is a Django application. Nginx sits in front of Gunicorn and serves static files directly; PostgreSQL 17 runs locally on the same board.</p>
+<p>The part I like most is how it reaches the internet: it does not. No port is forwarded on my router, and nothing on the Pi listens on a public address. Instead <a title="Cloudflare Tunnel" href="https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/" target="_blank" rel="noopener">Cloudflare Tunnel</a> runs as a daemon and opens an <em>outbound</em> connection to Cloudflare, which routes traffic for the domain back down that connection to <code>127.0.0.1:80</code>.</p>
+<p>That solves four problems at once. My home IP is never exposed. TLS terminates at Cloudflare, so there are no certificates to renew here. The router config stays empty, so there is nothing to redo when the ISP swaps the router. And it works behind CGNAT, where port forwarding is not an option at all.</p>
+<blockquote>
+<p><strong>&gt;Trade-off</strong>: the site now depends on someone else's network, and I have handed them my TLS termination. That is a real cost and worth naming rather than pretending away. For a personal site I will take it over renewing certificates and running an open port.</p>
+</blockquote>
+<h2><span style="text-decoration: underline;">Network</span>: <strong>Pi-hole and Tailscale</strong></h2>
+<p style="padding-left: 40px;"><strong>&loz; <a title="Pi-hole" href="https://pi-hole.net/" target="_blank" rel="noopener">Pi-hole</a></strong>: DNS-level ad blocking for every device on the network, including the ones that cannot run a blocker &mdash; the TV, the phones, the appliances that quietly phone home. It blocks about 15% of all queries and answers 69% from cache, which makes the whole network feel faster as a side effect.</p>
+<p style="padding-left: 40px;"><strong>&loz; <a title="Tailscale" href="https://tailscale.com/" target="_blank" rel="noopener">Tailscale</a></strong>: a private network that reaches the Pi from anywhere without exposing anything publicly. Jellyfin over mobile data, from a device that believes it is on my LAN.</p>
+<p style="padding-left: 40px;"><strong>&loz; Samba</strong>: a plain network share, so dragging a file onto the drive from a laptop just works.</p>
+<p>One detail that cost me an evening: Pi-hole's admin interface runs on port <strong>8080</strong>, not the usual 80. Nginx already owns 80 for this website, and two services cannot bind the same port &mdash; whichever starts second simply fails, and it fails in a way that looks like a Pi-hole problem rather than a port problem.</p>
+<h2><span style="text-decoration: underline;">Bots</span>: <strong>two posting, one watching</strong></h2>
+<p>Three Python services run under systemd, which restarts them if they crash.</p>
+<p style="padding-left: 40px;"><strong>&loz; A Harry Potter screengrab bot</strong>: picks a random frame from the films, runs it through a quality filter, and posts it every 30 minutes. The filter is the actual work &mdash; most random frames from a film are motion blur, a dark corridor, or the back of someone's head.</p>
+<p style="padding-left: 40px;"><strong>&loz; A Funko Pop bot</strong>: scrapes new product listings and posts them with price and image.</p>
+<p style="padding-left: 40px;"><strong>&loz; A status checker</strong>: the one that matters. A Telegram bot I message for temperature, load, disk usage, drive health and container states, plus a cron job every ten minutes that alerts me when something goes down.</p>
+<p>The third exists because of a lesson the first two taught me. Self-hosting is easy right up until something fails quietly and you find out four days later, sitting down to watch something. A service that dies at 3am and stays dead is worse than one that never existed, because you have stopped checking.</p>
+<blockquote>
+<p><strong>&gt;Detail I am fond of</strong>: the alerting has a memory. A problem notifies once, not every ten minutes for a day, and it sends a second message when it clears. Alerts you learn to ignore are not alerts.</p>
+</blockquote>
+<h2><span style="text-decoration: underline;">The part that went wrong</span>: <strong>461 duplicate posts</strong></h2>
+<p>The Funko bot keeps a ledger of what it has already posted, so it never posts the same product twice. The key it stores is a hash of the product name, scraped off the page.</p>
+<p>The problem is where the name came from. I was reading it out of the image's <code>alt</code> attribute, and that attribute carries a CDN suffix &mdash; the stored name was not <code>Pop! Fuecoco</code> but <code>Pop! Fuecoco, , hi-res view 1</code>. It worked perfectly. Every product got a stable key, nothing was ever posted twice, and I had no reason to look at it.</p>
+<p>Then I cleaned it up and read the name from the proper element instead. Which meant every key in the ledger now hashed differently from every key the scraper produced. As far as the bot was concerned, it had never posted anything. It began working through the back catalogue &mdash; 461 items, to a public feed, at a steady clip.</p>
+<p>The fix was a migration that re-keys old entries when the ledger loads, and a test that pins it. But the lesson is the one I actually keep: <strong>a deduplication key derived from scraped content is a schema, not an implementation detail.</strong> Changing how it is derived is a database migration wearing a very convincing disguise, and it will not warn you &mdash; it will just cheerfully do the thing it was built to prevent.</p>
+<h2><span style="text-decoration: underline;">What I would do differently</span></h2>
+<p>Two things, if I were starting again.</p>
+<p><strong>PostgreSQL is on the SD card.</strong> Its data directory sits on <code>/var/lib/postgresql</code>, on the same card as the operating system, and SD cards die from write cycles. This is the single most obvious flaw in the setup and I know it. It has not bitten me yet, backups run to the external drive, but "has not bitten me yet" is a sentence with a timer attached. On a rebuild it goes on an SSD.</p>
+<p><strong>Everything should have been written down sooner.</strong> The config that lived on one card, the unit file edited at midnight and never recorded, the credential stored in exactly one place. I have since pulled all of it into a repository, and that was the single highest-value afternoon in this project's life &mdash; higher than any service I installed.</p>
+<h2><span style="text-decoration: underline;">Ports</span>: <strong>the whole map</strong></h2>
+<table>
+<thead>
+<tr>
+<th>Service</th>
+<th>Port</th>
+<th>Reachable from</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>This website</td>
+<td>80 &rarr; tunnel</td>
+<td>the internet</td>
+</tr>
+<tr>
+<td>Jellyfin</td>
+<td>8096</td>
+<td>LAN + Tailscale</td>
+</tr>
+<tr>
+<td>qBittorrent</td>
+<td>8090</td>
+<td>LAN + Tailscale</td>
+</tr>
+<tr>
+<td>Pi-hole</td>
+<td>8080</td>
+<td>LAN</td>
+</tr>
+<tr>
+<td>Sonarr / Radarr / Prowlarr</td>
+<td>8989 / 7878 / 9696</td>
+<td>LAN</td>
+</tr>
+</tbody>
+</table>
+<h2><span style="text-decoration: underline;">Verdict</span></h2>
+<p>At the time of writing: seven days of uptime, a load average that rounds to zero, six containers and five services running, no failed units, and never a throttle event. The external drive is 87% full, which is the only number in that list I am unhappy about.</p>
+<p>The thing nobody tells you about a home server is that installation is not the hard part. Installation is an afternoon. The hard part is the year afterwards, and almost everything I have learned from this machine has been about writing things down rather than about Linux.</p>

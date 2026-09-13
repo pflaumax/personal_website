@@ -1,0 +1,223 @@
+/* Styles a post body needs and no other page does — figure chrome plus the
+ * handful of prose classes a long post uses (lede, note, colophon, data
+ * table). Linked from post.html only.
+ *
+ * This used to be an inline <style> block inside each post body, which meant
+ * two things: the same ~2 KB was duplicated per post, and the body had to
+ * bypass the TinyMCE admin form to survive at all. See
+ * website_app/figures.py for the token mechanism this belongs to.
+ *
+ * The trade is one extra request on post pages against ~800 bytes on every
+ * other page. Post pages are where the reading happens, and keeping this out
+ * of style.css means the whole figure system is one file to review or delete.
+ *
+ * Everything consumes the site's own tokens (--rule, --surface-2, --accent,
+ * --muted …), so both themes follow the page and this file owns no palette —
+ * with one documented exception, --fig-nixie below.
+ *
+ * Figure chrome is scoped under .fig, not the older .fx used by posts that
+ * still carry an inline <style> block, so the two coexist while figures are
+ * extracted one at a time.
+ */
+
+/* --- prose furniture ---------------------------------------------------- */
+
+.post-content .post-lede {
+  font-size: 1.05em;
+}
+
+.post-content .post-note {
+  margin: 1.4rem 0;
+  padding: 0.7rem 0 0.7rem 1rem;
+  border-left: 3px solid var(--accent);
+  background: var(--surface-2);
+}
+
+.post-content .post-colophon {
+  margin-top: 2.4rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--rule);
+  font-size: 0.8em;
+  color: var(--muted);
+}
+
+/* Used both in the prose and inside figures, so it is not scoped to either. */
+.post-content .post-table {
+  width: 100%;
+  margin: 1rem 0;
+  border-collapse: collapse;
+  font-size: 0.82em;
+}
+
+.post-content .post-table th,
+.post-content .post-table td {
+  padding: 0.35rem 0.5rem;
+  border-bottom: 1px solid var(--rule-soft);
+  text-align: left;
+}
+
+.post-content .post-table th {
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.post-content .post-table th.num,
+.post-content .post-table td.num {
+  font-family: ui-monospace, monospace;
+  text-align: right;
+}
+
+/* --- figure chrome ------------------------------------------------------ *
+ *
+ * Scoped under .post-content, and not only for tidiness: style.css already
+ * styles `.post-content figure` and `.post-content figcaption` for the plain
+ * image-plus-caption case, and those selectors are (0,1,1) to a bare `.fig`'s
+ * (0,1,0). Unscoped, they win on specificity regardless of load order — the
+ * caption picked up a 0.5rem top margin that opened a gap under the border and
+ * a font size from the wrong scale.
+ */
+
+.post-content .fig {
+  border: 1px solid var(--rule);
+  background: var(--surface-2);
+  margin: 1.4rem 0 2rem;
+}
+
+.post-content .fig-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.55rem 0.8rem;
+  border-bottom: 1px solid var(--rule-soft);
+  font-size: 0.78em;
+}
+
+.post-content .fig-label { color: var(--muted); }
+.post-content .fig-label b { color: var(--text); font-weight: 600; }
+
+.post-content .fig-stage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 150px;
+  padding: 1.6rem 1rem;
+  overflow: hidden;
+}
+
+/* For figures that fill the stage with their own rows rather than centring a
+   single specimen in it. */
+.post-content .fig-stage-flush {
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  min-height: 0;
+  padding: 1rem 1.2rem;
+}
+
+/* margin: 0 undoes the top margin `.post-content figcaption` gives a caption
+   that sits below an image — this one sits inside a bordered box. */
+.post-content .fig-foot {
+  margin: 0;
+  padding: 0.55rem 0.8rem;
+  border-top: 1px solid var(--rule-soft);
+  font-size: 0.78em;
+  color: var(--muted);
+}
+
+/* --- bar chart ---------------------------------------------------------- */
+
+.post-content .fig-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.2rem 0;
+}
+
+.post-content .fig-bar-label {
+  flex-shrink: 0;
+  width: 5.5em;
+  font-family: ui-monospace, monospace;
+  font-size: 0.8em;
+  color: var(--muted);
+}
+
+.post-content .fig-bar-track {
+  flex: 1;
+  height: 10px;
+  background: var(--rule-soft);
+}
+
+.post-content .fig-bar-fill {
+  height: 100%;
+  background: var(--accent);
+}
+
+.post-content .fig-bar-val {
+  flex-shrink: 0;
+  width: 4em;
+  font-family: ui-monospace, monospace;
+  font-size: 0.8em;
+  text-align: right;
+}
+
+/* --- side-by-side panels ------------------------------------------------ */
+
+/* Two outlines shown at once rather than swapped by a button: the argument the
+   figure makes is a comparison, and a toggle hides half of it. */
+.post-content .fig-panels {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.4rem;
+  justify-content: center;
+}
+
+.post-content .fig-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.post-content .fig-panel-label {
+  font-family: ui-monospace, monospace;
+  font-size: 0.78em;
+  color: var(--muted);
+}
+
+.post-content .fig-panel-label b {
+  color: var(--text);
+  font-weight: 600;
+}
+
+/* margin: 0 for the same reason as .fig-foot: `.post-content img` gives every
+   image a 1.5rem block margin, which inside a stage is a gap, not spacing. */
+.post-content .fig-outline {
+  margin: 0;
+  border: 1px solid var(--rule);
+  background: var(--bg);
+}
+
+/* --- specimens ---------------------------------------------------------- */
+
+.post-content .fig-specimen {
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 1.4rem;
+  line-height: 1.5;
+  letter-spacing: 0.02em;
+  color: var(--text);
+  text-align: center;
+  white-space: pre;
+}
+
+/* The one hard-coded colour in this file, and deliberately so: the Divergence
+   Meter is a prop, not a piece of interface. Nixie green does not belong to the
+   site's palette and must not follow the theme — a tube glows the colour it
+   glows in both light and dark. */
+.post-content .fig-nixie {
+  --fig-nixie: #3fbf6f;
+  color: var(--fig-nixie);
+  text-shadow: 0 0 6px currentcolor, 0 0 2px currentcolor;
+  letter-spacing: 0.08em;
+}
