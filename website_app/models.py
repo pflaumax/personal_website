@@ -1,15 +1,14 @@
-import html
 import logging
-import re
 
 from django.contrib.auth.models import User
 from django.db import models
 from django.urls import reverse
-from django.utils.html import strip_tags
+from django.utils import timezone
 from django.utils.text import slugify
 from tinymce.models import HTMLField
 
 from .figures import strip_figures
+from .post_text import plain_text
 
 logger = logging.getLogger(__name__)
 
@@ -115,25 +114,15 @@ class Post(models.Model):
         lowered = (content or "").lower()
         return any(marker in lowered for marker in cls.RAW_MARKERS)
 
-    # strip_tags drops the tags but keeps whatever sits between them, so a post
-    # carrying an inline <style> or <script> block would otherwise open its
-    # excerpt — and its RSS summary, and its meta description — with raw CSS.
-    _NON_PROSE = re.compile(r"<(style|script)\b[^>]*>.*?</\1\s*>", re.I | re.S)
-
     def excerpt(self, length=None):
         """Plain-text opening of the post.
 
-        strip_tags removes tags but leaves entities, so unescape once here —
-        otherwise a stored `&nbsp;` survives as literal text and whatever
-        renders it escapes the ampersand again, so readers see `&amp;nbsp;`.
-
-        Figure tokens go first: they are plain text, so strip_tags has nothing
-        to remove and a literal `[[figure:name]]` would otherwise open the RSS
-        summary and the meta description.
+        Every step of turning a body into readable text, and why it happens in
+        that order, is in website_app/post_text.py. Three call sites needed the
+        same thing and two of them carried the same two bugs.
         """
         limit = self.EXCERPT_LENGTH if length is None else length
-        body = self._NON_PROSE.sub(" ", strip_figures(self.content))
-        text = " ".join(html.unescape(strip_tags(body)).split())
+        text = plain_text(self.content, strip_tokens=strip_figures)
         if len(text) <= limit:
             return text
         return text[:limit].rsplit(" ", 1)[0] + "…"
@@ -165,8 +154,25 @@ class Post(models.Model):
         one derived from the current title.
         """
         if not self.slug:
-            self.slug = self.get_unique_slug(slugify(self.title))
+            self.slug = self.get_unique_slug(self.slug_base())
         super().save(*args, **kwargs)
+
+    def slug_base(self):
+        """A non-empty slug stem derived from the title.
+
+        `slugify` drops everything it cannot transliterate, so a title with no
+        ASCII letters — a Ukrainian or Japanese one, say — returns the empty
+        string. That used to be stored as-is, and an empty slug makes
+        `get_absolute_url` raise `NoReverseMatch`: the post exists and nothing
+        can link to it.
+
+        The fallback is the date rather than `slugify(allow_unicode=True)`,
+        because this `SlugField` is declared without `allow_unicode` — deriving
+        a value its own validator would reject in the admin form is worse than
+        deriving a dull one. A dated stem is ugly but valid, and the slug field
+        is editable, so renaming it by hand takes one keystroke.
+        """
+        return slugify(self.title) or f"post-{timezone.localdate():%Y-%m-%d}"
 
     def get_unique_slug(self, base_slug):
         """Generate a unique slug by adding a number suffix if necessary."""

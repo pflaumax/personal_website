@@ -122,6 +122,17 @@ if os.environ.get("DATABASE_URL"):
             ssl_require=_ssl_require,
         )
     }
+    # `manage.py dumpdata` iterates with .iterator(), which asks Postgres for a
+    # named cursor. With conn_max_age holding the connection open and no
+    # explicit transaction around the read, that cursor is gone by the second
+    # fetch — dumpdata died with `cursor "_django_curs_…" does not exist` after
+    # writing a *truncated* file, which is worse than failing outright, because
+    # the file looks like a backup.
+    #
+    # Nothing in this project calls .iterator() itself, and the largest table
+    # holds a few dozen rows, so buffering server-side cursors away costs
+    # nothing measurable here.
+    DATABASES["default"]["DISABLE_SERVER_SIDE_CURSORS"] = True
 else:
     # Use SQLite locally
     DATABASES = {

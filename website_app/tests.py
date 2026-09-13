@@ -8,13 +8,16 @@ from django.contrib.auth.models import User
 from django.core.management import call_command
 from django.test import RequestFactory, TestCase
 from django.urls import reverse
+from django.utils import timezone
 from django.utils.safestring import SafeString
 from tinymce.widgets import TinyMCE
 
 from . import views
 from .admin import PostAdmin
+from .figures import fingerprint, strip_figures
 from .media_urls import LEGACY_S3_MEDIA_PREFIX, rewrite_content, rewrite_posts
 from .models import MediaFile, Post
+from .post_text import plain_text
 from .projects_data import PROJECTS
 from .templatetags.figures import figures
 
@@ -205,6 +208,35 @@ class PostSlugTests(TestCase):
         post.save()
 
         self.assertEqual(post.slug, "second-title")
+
+    def test_a_title_with_no_ascii_letters_still_gets_a_usable_slug(self):
+        """
+        slugify() drops what it cannot transliterate and returns "" for a title
+        like this. An empty slug is not a cosmetic problem: get_absolute_url
+        raises NoReverseMatch, so the post exists and nothing can link to it.
+        """
+        post = Post.objects.create(title="Привіт, світе", content="x", owner=self.owner)
+
+        self.assertTrue(post.slug)
+        self.assertEqual(post.slug, f"post-{timezone.localdate():%Y-%m-%d}")
+        self.assertEqual(post.get_absolute_url(), f"/blog/{post.slug}/")
+
+    def test_two_such_titles_do_not_collide(self):
+        first = Post.objects.create(title="Привіт", content="x", owner=self.owner)
+        second = Post.objects.create(title="Дякую", content="x", owner=self.owner)
+
+        self.assertNotEqual(first.slug, second.slug)
+        self.assertEqual(second.slug, f"{first.slug}-1")
+
+    def test_the_derived_slug_passes_the_fields_own_validation(self):
+        """
+        SlugField here is declared without allow_unicode, so a slugify(…,
+        allow_unicode=True) fallback would have produced values the admin form
+        rejects. Whatever save() derives has to survive full_clean().
+        """
+        post = Post.objects.create(title="Привіт, світе", content="x", owner=self.owner)
+
+        post.full_clean()
 
     def test_saving_without_title_change_keeps_slug(self):
         post = Post.objects.create(title="Stable Title", content="x", owner=self.owner)
@@ -898,6 +930,126 @@ class PostPageFigureTests(TestCase):
         response = self.client.get(reverse("website_app:feed"))
 
         self.assertNotContains(response, "[[figure:")
+
+
+class PlainTextTests(TestCase):
+    """
+    Covers website_app/post_text.py, the one pipeline behind Post.excerpt, the
+    RSS summary, the meta description and the --diff fingerprint. Each case here
+    is a bug that reached a live page or a misleading tool output.
+    """
+
+    def test_a_comment_naming_a_tag_does_not_eat_the_prose(self):
+        """
+        The one that shipped. _NON_PROSE pairs an opening style tag with a
+        closing one by regex, so a comment that merely *named* the tag paired
+        with the real closing tag below, the comment lost its terminator, and
+        everything up to the next one vanished — including the lede.
+        """
+        body = (
+            "<!-- note to self: do not put a <style> tag in a comment -->\n"
+            "<p>The lede survives.</p>\n"
+            "<style>.fx { color: red; }</style>\n"
+            "<p>So does the rest.</p>"
+        )
+
+        self.assertEqual(plain_text(body), "The lede survives. So does the rest.")
+
+    def test_adjacent_blocks_do_not_run_together(self):
+        self.assertEqual(plain_text("<p>one</p><p>two</p>"), "one two")
+
+    def test_table_cells_do_not_run_together(self):
+        """
+        Caught by --diff: the delivery table read as `deliverytotal sizerequests`
+        from the file and correctly from the database, purely because TinyMCE had
+        put the cells on separate lines.
+        """
+        body = '<tr><th>delivery</th><th class="num">total size</th><th>risk</th></tr>'
+
+        self.assertEqual(plain_text(body), "delivery total size risk")
+
+    def test_inline_tags_do_not_add_space_before_punctuation(self):
+        """The other direction: a blanket tag-to-space rule breaks this."""
+        self.assertEqual(
+            plain_text("<p>Some <strong>markup</strong>.</p>"), "Some markup."
+        )
+
+    def test_style_and_script_contents_are_not_prose(self):
+        body = "<style>.a { color: red }</style><p>Words.</p><script>x = 1;</script>"
+
+        self.assertEqual(plain_text(body), "Words.")
+
+    def test_entities_are_unescaped_once(self):
+        self.assertEqual(plain_text("<p>a&nbsp;b &amp; c</p>"), "a b & c")
+
+    def test_figure_tokens_are_removed_when_a_stripper_is_given(self):
+        body = "<p>before</p>[[figure:ms-ui-gothic-widths]]<p>after</p>"
+
+        self.assertEqual(plain_text(body, strip_tokens=strip_figures), "before after")
+        self.assertIn("[[figure:", plain_text(body))
+
+    def test_empty_input(self):
+        self.assertEqual(plain_text(""), "")
+        self.assertEqual(plain_text(None), "")
+
+
+class FingerprintTests(TestCase):
+    """
+    Covers the comparison behind `publish_post.py --diff`. Byte equality was the
+    wrong question: TinyMCE rewrites line endings, re-encodes punctuation as
+    entities and collapses blank lines on every Save, so a byte diff cried wolf
+    in exactly the situation the tool exists for.
+    """
+
+    BODY = (
+        '<p class="post-lede">Lede — with punctuation.</p>\n'
+        "[[figure:ms-ui-gothic-widths]]\n"
+        '<div class="post-note">A <b>note</b>.</div>\n'
+        "<pre><code>code</code></pre>"
+    )
+
+    def test_the_editors_cosmetic_rewrites_do_not_change_the_fingerprint(self):
+        saved = (
+            self.BODY.replace("\n", "\r\n")
+            .replace("—", "&mdash;")
+            .replace("<b>", "<strong>")
+            .replace("</b>", "</strong>")
+        )
+
+        self.assertNotEqual(saved, self.BODY)
+        self.assertEqual(fingerprint(saved), fingerprint(self.BODY))
+
+    def test_a_lost_figure_token_changes_the_fingerprint(self):
+        mangled = self.BODY.replace("[[figure:ms-ui-gothic-widths]]", "")
+
+        self.assertNotEqual(fingerprint(mangled), fingerprint(self.BODY))
+        self.assertEqual(fingerprint(mangled)["figures"], [])
+
+    def test_a_lost_class_changes_the_fingerprint(self):
+        mangled = self.BODY.replace(' class="post-note"', "")
+
+        self.assertNotEqual(fingerprint(mangled), fingerprint(self.BODY))
+        self.assertNotIn("post-note", fingerprint(mangled)["classes"])
+
+    def test_a_stripped_code_block_changes_the_fingerprint(self):
+        mangled = self.BODY.replace("<pre><code>code</code></pre>", "<p>code</p>")
+
+        self.assertEqual(fingerprint(self.BODY)["tags"]["pre"], 1)
+        self.assertEqual(fingerprint(mangled)["tags"]["pre"], 0)
+
+    def test_a_stripped_style_block_changes_the_fingerprint(self):
+        """What TinyMCE actually did to the live post."""
+        with_style = "<style>.fx { color: red }</style>" + self.BODY
+
+        self.assertEqual(fingerprint(with_style)["tags"]["style"], 1)
+        self.assertEqual(fingerprint(self.BODY)["tags"]["style"], 0)
+
+    def test_changed_prose_changes_the_fingerprint(self):
+        mangled = self.BODY.replace("Lede", "Something else")
+
+        self.assertNotEqual(
+            fingerprint(mangled)["prose"], fingerprint(self.BODY)["prose"]
+        )
 
 
 class PostAdminRawHtmlTests(TestCase):

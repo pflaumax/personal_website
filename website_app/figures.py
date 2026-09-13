@@ -23,6 +23,8 @@ import re
 from django.template import TemplateDoesNotExist
 from django.template.loader import render_to_string
 
+from .post_text import plain_text
+
 logger = logging.getLogger(__name__)
 
 # Lowercase, digits and hyphens only. This is also the path guard: no dots and
@@ -62,3 +64,45 @@ def strip_figures(content):
     Replaced with a space so the words either side do not run together.
     """
     return FIGURE_TOKEN.sub(" ", content or "")
+
+
+# Attribute values are what carry the prose classes (post-note, post-table …).
+# Losing one is real damage: the note keeps its words and loses its rule.
+_CLASS_ATTR = re.compile(r"""class\s*=\s*["']([^"']+)["']""", re.I)
+
+# Containers whose count changing means something was actually lost. Inline
+# emphasis is left out on purpose: TinyMCE rewrites <b> to <strong> and <i> to
+# <em>, which changes bytes and nothing else.
+STRUCTURAL_TAGS = (
+    "style",
+    "script",
+    "svg",
+    "pre",
+    "code",
+    "table",
+    "figure",
+    "img",
+    "iframe",
+    "audio",
+)
+
+
+def fingerprint(body):
+    """Reduce a body to what has to survive a round trip through the editor.
+
+    Everything the rich-text editor is entitled to change is normalised away
+    here: line endings, character entities, run-together whitespace, and the
+    inline tags it swaps for synonyms. What is left is the prose, the figure
+    tokens, the class attributes and the block containers.
+    """
+    body = (body or "").replace("\r\n", "\n")
+    return {
+        "prose": plain_text(body, strip_tokens=strip_figures),
+        "figures": sorted(FIGURE_TOKEN.findall(body)),
+        "classes": sorted(
+            value for attr in _CLASS_ATTR.findall(body) for value in attr.split()
+        ),
+        "tags": {
+            tag: len(re.findall(rf"<{tag}\b", body, re.I)) for tag in STRUCTURAL_TAGS
+        },
+    }

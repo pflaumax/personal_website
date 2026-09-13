@@ -56,9 +56,11 @@ personal_website/
 │   ├── models.py         # Post and MediaFile models
 │   ├── views.py          # Home, blog, projects, contact, healthcheck
 │   ├── feeds.py          # RSS feed at /feed/
+│   ├── figures.py        # [[figure:name]] tokens; the --diff fingerprint
+│   ├── post_text.py      # Body → plain text, for excerpts and the fingerprint
 │   ├── projects_data.py  # The project list — one source for /projects/ and home
 │   ├── media_urls.py     # Legacy S3 → local media URL rewriting
-│   ├── templatetags/     # figures.py — expands [[figure:name]] in post bodies
+│   ├── templatetags/     # figures.py — the template filter wrapper
 │   ├── templates/        # HTML templates (base, pages, figures, error pages)
 │   └── static/           # CSS, JS, images, fonts, sounds
 ├── tools/                # Tools app — Todo List & Pomodoro Timer
@@ -67,8 +69,10 @@ personal_website/
 │   ├── middleware.py     # Request tracking middleware
 │   ├── purge.py          # Shared admin-path purge helper
 │   └── views.py          # JSON stats API (staff-only)
-├── scripts/              # Utility scripts (migrate, create superuser, publish_post)
-├── deployment/           # Raspberry Pi deployment guides & scripts
+├── scripts/              # migrate, create superuser, publish_post, backup_db
+├── media_for_blogposts/  # Post source files (post.html tracked, images not)
+├── docs/                 # Raspberry Pi setup and deploy guides (phase1–5)
+│   └── scripts/          # Provisioning shell scripts
 ├── .github/workflows/    # GitHub Actions (healthcheck ping)
 ├── requirements.txt      # Production dependencies
 ├── requirements-dev.txt  # + local dev tooling (debug toolbar, shell_plus, ruff)

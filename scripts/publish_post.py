@@ -20,9 +20,10 @@ that does not gets the rich-text editor back. Bodies built out of
 `[[figure:name]]` tokens (see website_app/figures.py) fall in the second group.
 
 The source file stays the source of truth either way — `media_for_blogposts/` is
-gitignored, so it is also the only copy. `--diff` reports whether the database
-still matches it, which is how you check whether something (an admin Save, say)
-has rewritten the stored body.
+tracked in git but its images are not, so keep editing the file and re-running
+this script. `--diff` reports whether the database still agrees with it, and
+tells cosmetic differences (the editor's line endings and entities) apart from a
+real change to the prose, the figure tokens, the classes or the block tags.
 """
 
 import os
@@ -42,6 +43,7 @@ django.setup()
 
 from django.contrib.auth import get_user_model  # noqa: E402
 
+from website_app.figures import fingerprint  # noqa: E402
 from website_app.models import Post  # noqa: E402
 
 User = get_user_model()
@@ -73,25 +75,81 @@ def show(slug):
         print(f"  {tag:<14} x{body.count(tag)}")
 
 
+def _first_word_difference(a, b):
+    """Where two normalised prose strings part company, in words."""
+    left, right = a.split(), b.split()
+    for i, (x, y) in enumerate(zip(left, right)):
+        if x != y:
+            return i, " ".join(left[i : i + 12]), " ".join(right[i : i + 12])
+    i = min(len(left), len(right))
+    return i, " ".join(left[i : i + 12]), " ".join(right[i : i + 12])
+
+
 def diff(slug, path):
-    """Report whether the stored body still matches the file on disk."""
+    """Report whether the stored body still means what the source file says.
+
+    Byte equality is the wrong question after an admin Save. TinyMCE rewrites
+    line endings to CRLF, re-encodes non-ASCII punctuation as named entities and
+    collapses blank lines — none of which changes a rendered page. Comparing
+    bytes made this cry DIFFERS every time, which is useless in exactly the
+    situation it exists for.
+
+    So: exact match, else compare fingerprints (see website_app/figures.py) and
+    say which it is. Exit status is non-zero only for a real change.
+    """
     post = _get(slug)
     with open(path, encoding="utf-8") as fh:
         expected = fh.read()
 
     if post.content == expected:
-        print(f"{slug!r} matches {path} ({len(expected)} chars).")
+        print(f"{slug!r} matches {path} exactly ({len(expected):,} chars).")
         return
 
-    print(f"{slug!r} DIFFERS from {path}.")
-    print(f"  file:     {len(expected)} chars")
-    print(f"  database: {len(post.content)} chars")
-    for i, (a, b) in enumerate(zip(expected, post.content)):
-        if a != b:
-            print(f"  first difference at offset {i}:")
-            print(f"    file:     {expected[i : i + 60]!r}")
-            print(f"    database: {post.content[i : i + 60]!r}")
-            break
+    want, got = fingerprint(expected), fingerprint(post.content)
+    print(f"{slug!r} is not byte-identical to {path}.")
+    print(f"  file {len(expected):,} chars, database {len(post.content):,} chars")
+
+    cosmetic = []
+    if post.content.count("\r") != expected.count("\r"):
+        cosmetic.append("line endings (CRLF)")
+    if post.content.count("&") != expected.count("&"):
+        cosmetic.append("character entities")
+    if post.content.count("\n") != expected.count("\n"):
+        cosmetic.append("blank lines")
+    if cosmetic:
+        print(f"  cosmetic: {', '.join(cosmetic)}")
+
+    if want == got:
+        print(
+            f"  structure intact: prose, {len(want['figures'])} figure tokens, "
+            f"{len(want['classes'])} class attributes and every block tag agree."
+        )
+        print("  Nothing to do — the rendered page is unchanged.")
+        return
+
+    print("\n  STRUCTURE CHANGED:")
+    if want["prose"] != got["prose"]:
+        i, a, b = _first_word_difference(want["prose"], got["prose"])
+        print(f"    prose differs from word {i}:")
+        print(f"      file:     …{a}…")
+        print(f"      database: …{b}…")
+    if want["figures"] != got["figures"]:
+        print(f"    figure tokens: file {want['figures']}")
+        print(f"                   database {got['figures']}")
+    if want["classes"] != got["classes"]:
+        lost = sorted(set(want["classes"]) - set(got["classes"]))
+        gained = sorted(set(got["classes"]) - set(want["classes"]))
+        if lost:
+            print(f"    classes lost: {lost}")
+        if gained:
+            print(f"    classes added: {gained}")
+        if not lost and not gained:
+            print("    class attributes reordered or repeated differently")
+    for tag, n in want["tags"].items():
+        if got["tags"][tag] != n:
+            print(f"    <{tag}>: {n} in the file, {got['tags'][tag]} in the database")
+
+    print(f"\n  Re-publish from the file:  python {sys.argv[0]} {slug} <title> {path}")
     sys.exit(1)
 
 
