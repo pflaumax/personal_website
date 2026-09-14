@@ -221,3 +221,89 @@
   text-shadow: 0 0 6px currentcolor, 0 0 2px currentcolor;
   letter-spacing: 0.08em;
 }
+
+/* --- divergence meter ---------------------------------------------------- *
+ *
+ * The real .arpa page draws each digit as its own tube — border, glass
+ * ribbing, a radial glow behind the glyph — not one flat monospace string.
+ * A single string reads as an error message; seven separate tubes read as
+ * an instrument. Same --fig-nixie green as .fig-nixie above, for the same
+ * reason: the reading does not follow the site's theme.
+ */
+
+.post-content .fig-nixie-panel {
+  --fig-nixie: #3fbf6f;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.post-content .fig-nixie-title {
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 0.8em;
+  letter-spacing: 0.04em;
+  color: var(--fig-nixie);
+}
+
+.post-content .fig-nixie-row {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.post-content .fig-nixie-tube {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 1.85rem;
+  height: 2.75rem;
+  border: 1px solid color-mix(in srgb, var(--fig-nixie) 55%, transparent);
+  border-radius: 2px;
+  background:
+    repeating-linear-gradient(
+      0deg,
+      color-mix(in srgb, var(--fig-nixie) 5%, transparent) 0,
+      color-mix(in srgb, var(--fig-nixie) 5%, transparent) 1px,
+      transparent 1px,
+      transparent 4px
+    ),
+    radial-gradient(ellipse at 50% 40%, color-mix(in srgb, var(--fig-nixie) 10%, transparent), transparent 70%),
+    #08110c;
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 1.4rem;
+  line-height: 1;
+  color: var(--fig-nixie);
+  text-shadow: 0 0 6px color-mix(in srgb, var(--fig-nixie) 65%, transparent),
+               0 0 14px color-mix(in srgb, var(--fig-nixie) 35%, transparent);
+}
+
+.post-content .fig-nixie-tube::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 2px;
+  box-shadow: inset 0 0 0.5rem rgb(0 0 0 / 0.55);
+  pointer-events: none;
+}
+
+/* The digit that lies: same tube, a cooler glow, so it reads as the odd one
+   out without any motion or JavaScript. */
+.post-content .fig-nixie-tube.fig-nixie-lie {
+  --fig-nixie: #62e7ff;
+}
+
+.post-content .fig-nixie-sep {
+  display: grid;
+  place-items: center;
+  width: 0.6rem;
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 1.4rem;
+  line-height: 1;
+  color: var(--muted);
+}
+
+.post-content .fig-nixie-caption {
+  font-size: 0.78em;
+  color: var(--muted);
+}

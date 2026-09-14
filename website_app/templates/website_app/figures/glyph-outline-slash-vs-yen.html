@@ -6,8 +6,9 @@ that swapped which polygon was visible, which meant the figure hid half of the
 argument it exists to make: four points against twenty-three, side by side. The
 button was also the only reason this figure needed JavaScript.
 
-The yen shape is an approximation — the diagonal plus three crossbars, not all
-twenty-three points traced. It is drawn in --accent to read as the odd one out.
+The yen shape is an approximation — a Y-shaped stem with two short crossbars,
+not all twenty-three points of the real outline traced. It is drawn in
+--accent to read as the odd one out.
 {% endcomment %}
 <figure class="fig">
   <div class="fig-head">
@@ -29,15 +30,16 @@ twenty-three points traced. It is drawn in --accent to read as the odd one out.
       <div class="fig-panel">
         <span class="fig-panel-label"><b>U+005C</b> &middot; 23 points</span>
         <svg class="fig-outline" width="200" height="200" viewBox="-20 -220 220 220"
-             role="img" aria-label="A diagonal stroke falling left to right, cut across by two crossbars and a stem.">
+             role="img" aria-label="A Y-shaped stroke: two arms meeting at a stem, the stem crossed by two short bars — the yen sign.">
           <g stroke="var(--rule-soft)" stroke-width="1">
             <line x1="-20" y1="0" x2="200" y2="0"/>
             <line x1="0" y1="-220" x2="0" y2="20"/>
           </g>
-          <polygon points="10,-168.3 18,-164.7 96,12.9 88,9.2" fill="var(--accent)"/>
-          <rect x="20" y="-94.4" width="70" height="13.5" fill="var(--accent)"/>
-          <rect x="14" y="-80.9" width="76" height="13.5" fill="var(--accent)"/>
-          <rect x="8" y="-63.1" width="82" height="13.5" fill="var(--accent)"/>
+          <polygon points="8,-168.3 17,-168.3 52.5,-96 46.65,-96" fill="var(--accent)"/>
+          <polygon points="88,-168.3 79,-168.3 43.5,-96 49.35,-96" fill="var(--accent)"/>
+          <rect x="43.5" y="-96" width="9" height="96" fill="var(--accent)"/>
+          <rect x="24.5" y="-68" width="47" height="4" fill="var(--accent)"/>
+          <rect x="24.5" y="-46" width="47" height="4" fill="var(--accent)"/>
         </svg>
       </div>
     </div>

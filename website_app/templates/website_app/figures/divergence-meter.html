@@ -5,13 +5,31 @@ Frozen at the canonical reading. In the post body this ran on a setInterval and
 had a Pause button, which is a lot of machinery for a decorative clock inside an
 article about the page that already has a real one. The green is deliberate and
 does not follow the theme; see .fig-nixie in post-body.css.
+
+Each digit is its own tube (border, glass ribbing, radial glow) rather than one
+plain string, matching the reading on the live .arpa page — a single flat line
+of monospace text reads as an error message, not an instrument.
 {% endcomment %}
 <figure class="fig">
   <div class="fig-head">
     <span class="fig-label">seven <code>&lt;span&gt;</code>s &middot; <b>text-shadow</b> glow, last digit randomised</span>
   </div>
   <div class="fig-stage">
-    <div class="fig-specimen fig-nixie">1.048596</div>
+    <div class="fig-nixie-panel">
+      <span class="fig-nixie-title">// DIVERGENCE METER</span>
+      <div class="fig-nixie-row" role="img" aria-label="Divergence meter reading: 1.048596%">
+        <span class="fig-nixie-tube">1</span>
+        <span class="fig-nixie-sep">.</span>
+        <span class="fig-nixie-tube">0</span>
+        <span class="fig-nixie-tube">4</span>
+        <span class="fig-nixie-tube">8</span>
+        <span class="fig-nixie-tube">5</span>
+        <span class="fig-nixie-tube">9</span>
+        <span class="fig-nixie-tube fig-nixie-lie">6</span>
+        <span class="fig-nixie-sep">%</span>
+      </div>
+      <span class="fig-nixie-caption">Reading drifts. It should not.</span>
+    </div>
   </div>
   <figcaption class="fig-foot">
     Agreeing with real time on purpose about six digits out of seven &mdash; the
