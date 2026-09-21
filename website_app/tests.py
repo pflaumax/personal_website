@@ -1,11 +1,13 @@
 from importlib import import_module
 from pathlib import Path
+from unittest import mock
 from urllib.parse import quote
 
 from django import forms
 from django.contrib.admin.sites import site
 from django.contrib.auth.models import User
 from django.core.management import call_command
+from django.db import OperationalError
 from django.test import RequestFactory, TestCase
 from django.urls import reverse
 from django.utils import timezone
@@ -80,6 +82,18 @@ class PublicPageSmokeTests(TestCase):
         response = self.client.get(reverse("website_app:healthcheck"))
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json(), {"status": "OK"})
+
+    def test_healthcheck_reports_database_down(self):
+        """A dead database must turn the probe red, not leave it at 200."""
+        with mock.patch.object(
+            views.connection, "cursor", side_effect=OperationalError("down")
+        ):
+            response = self.client.get(reverse("website_app:healthcheck"))
+        self.assertEqual(response.status_code, 503)
+        self.assertEqual(
+            response.json(), {"status": "error", "database": "unavailable"}
+        )
+        self.assertNotIn("down", response.content.decode())
 
     def test_media_list_requires_staff(self):
         """

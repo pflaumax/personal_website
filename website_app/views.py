@@ -1,5 +1,6 @@
 from urllib.parse import quote, urlencode
 
+from django.db import DatabaseError, connection
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
@@ -119,7 +120,17 @@ def contact(request):
 
 @csrf_exempt
 def healthcheck(request):
-    """Ping page"""
+    """
+    Uptime probe for UptimeRobot and status_checker. It has to touch the
+    database: on 2026-09-21 Postgres failed to start after a reboot, every page
+    returned 500, and a static "OK" here kept both monitors green throughout.
+    """
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT 1")
+    except DatabaseError:
+        # No exception text: this endpoint is public and unauthenticated.
+        return JsonResponse({"status": "error", "database": "unavailable"}, status=503)
     return JsonResponse({"status": "OK"})
 
 
