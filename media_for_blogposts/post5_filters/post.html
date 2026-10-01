@@ -230,7 +230,7 @@
 </div>
 <p>The part that took longest to get right was not the filter, it was the arithmetic around it. The grain is blended into the background &mdash; <code>multiply</code> on the light theme, <code>screen</code> on the dark one &mdash; and those two are not symmetrical. Multiply only ever darkens, so it tolerates a strong alpha. Screen <em>lifts</em> the whole surface, so the same strength that looks like paper in daylight washed the warm ink-brown out to a flat grey in the dark.</p>
 <p>Which means the strength dial and the background colour cannot be tuned independently. Screen raises the mean by roughly <code>slope &times; (255 &minus; bg)</code>, so turning the noise down also turns the <em>page</em> down. Both themes here are held at the same measured grain &sigma;, on purpose: it should read as one sheet of paper lit two ways, and a page that is grainier in the dark reads as two sheets.</p>
-<div class="fx-note"><strong>Change the slope and the base colour together, or the whole page shifts.</strong> That sentence is a comment in this site's stylesheet, written after finding out the hard way.</div>
+<div class="fx-note"><strong>Change the slope and the base together or the whole page shifts.</strong> That sentence is a comment in this site's stylesheet, written after finding out the hard way.</div>
 
 <h2>The rest of the box</h2>
 <p>There are around twenty of these primitives. Here are five more worth knowing, each running live &mdash; the pipeline printed above every specimen is the real chain it uses.</p>
@@ -260,7 +260,7 @@
   <div class="fx-stage">
     <div class="fx-sheet" id="fx-sketch-stage">
       <p><strong>Hand-drawn</strong> is a rendering choice, not a font.</p>
-      <p style="font-size:.78em;color:var(--muted);margin:0">&#9484;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9488;<br>&#9474; still a box &#9474;<br>&#9492;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9496;</p>
+      <p style="font-size:.78em;color:var(--muted);margin:0">&#9484;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9488;<br>&#9474; still a box &#9474;<br>&#9492;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9496;</p>
     </div>
   </div>
   <div class="fx-foot">Sketchy interfaces are usually built this way rather than with hand-drawn assets.</div>
