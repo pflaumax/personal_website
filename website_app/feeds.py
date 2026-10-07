@@ -7,6 +7,7 @@ dependency, nothing to add to INSTALLED_APPS.
 from datetime import datetime, time
 
 from django.contrib.syndication.views import Feed
+from django.templatetags.static import static
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.feedgenerator import Rss201rev2Feed
@@ -24,6 +25,19 @@ class BrowsableRssFeed(Rss201rev2Feed):
     """
 
     content_type = "application/xml; charset=utf-8"
+
+    def add_root_elements(self, handler):
+        super().add_root_elements(handler)
+        # RSS 2.0 <image> is the channel's logo, shown by readers beside the
+        # feed title. The spec requires url, title and link together; Django's
+        # generator has no hook for it, so it is written here.
+        image_url = self.feed.get("image_url")
+        if image_url:
+            handler.startElement("image", {})
+            handler.addQuickElement("url", image_url)
+            handler.addQuickElement("title", self.feed["title"])
+            handler.addQuickElement("link", self.feed["link"])
+            handler.endElement("image")
 
 
 class LatestPostsFeed(Feed):
@@ -64,3 +78,13 @@ class LatestPostsFeed(Feed):
 
     def feed_url(self):
         return reverse("website_app:feed")
+
+    def get_feed(self, obj, request):
+        feed = super().get_feed(obj, request)
+        # Absolute, like every other URL in a feed: a reader fetches it with no
+        # page to resolve a relative path against. It is the same icon the
+        # browser tab shows on the site, which is what "the logo" means here.
+        feed.feed["image_url"] = request.build_absolute_uri(
+            static("website_app/images/favicon.ico")
+        )
+        return feed
