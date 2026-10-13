@@ -18,59 +18,39 @@
      Do not name a tag literally in this comment; see the note at the top
      of post6_arpa/post.html for why.
      ===================================================================== -->
-
 <p class="post-lede">Every browser ships a small image-processing language that almost nobody uses. It is older than the web, it came out of a film, and there is already one running quietly underneath this page.</p>
-
 <h2>It started with someone annoyed at a film</h2>
 <p>In 1983 Ken Perlin was working on the computer graphics for <a href="https://en.wikipedia.org/wiki/Tron" target="_blank" rel="noopener"><em>Tron</em></a>, and what bothered him was how <em>clean</em> everything looked. Real surfaces have grain, drift, irregularity. Machines produce flat planes and exact edges, and the eye reads that instantly as fake.</p>
-<p>So he wrote a function that manufactures believable irregularity — not scattered random dots, but smooth drifting cloud, the way smoke and marble and water are irregular. It is called Perlin noise, it is in every game engine and every 3D package you have ever opened, and it won him a technical Academy Award in 1997.</p>
+<p>So he wrote a function that manufactures believable irregularity, not scattered random dots, but smooth drifting cloud, the way smoke and marble and water are irregular. It is called <strong>Perlin noise</strong>, it is in every game engine and every 3D package you have ever opened, and it won him a technical Academy Award in 1997.</p>
 <p>The second ingredient came from Photoshop. Its <em>Displace</em> filter takes an image and a second image called a displacement map, then walks over every pixel asking the map one question: how bright are you here? The brighter the answer, the further that pixel gets pushed.</p>
 <p>When SVG was specified around 2001, the people in the room came out of Adobe and the PostScript tradition, and they did not invent new effects. They took Photoshop's filter pipeline and wrote it down as XML. The spec even carries reference C code for the noise function, so every browser would generate the <em>same</em> clouds.</p>
 <div class="post-note"><strong>So the melt below is a 1983 film technique feeding a 1990s Photoshop filter, standardised in 2001, running here with no library and nothing downloaded.</strong></div>
-
 <h2>Two boxes and a wire</h2>
 <p>A filter is a <strong>pipeline</strong>. Each stage takes an input, produces an output, and you chain them. The melt is the shortest useful chain there is: generate noise, then use it to shove pixels around.</p>
-<pre><code>&lt;filter id="melt"&gt;
-  &lt;!-- 1. make a cloud of coloured noise --&gt;
-  &lt;feTurbulence type="fractalNoise" baseFrequency="0.1" numOctaves="1" /&gt;
-
-  &lt;!-- 2. read that cloud as a map and push pixels by it --&gt;
-  &lt;feDisplacementMap in="SourceGraphic" scale="13.5"
-                     xChannelSelector="R" yChannelSelector="G" /&gt;
-&lt;/filter&gt;</code></pre>
-<p><code>xChannelSelector="R"</code> means <em>take the horizontal shove from the red channel of the noise</em>; green drives the vertical. <code>baseFrequency</code> sets how fine the cloud is, and <code>scale</code> is the furthest a pixel may travel. Two dials — turn them and watch what each one does.</p>
-
-[[figure:filter-melt]]
-<p>Those two defaults &mdash; <code>baseFrequency="0.1"</code> and <code>scale="13.5"</code> &mdash; are not illustrative numbers. They are the exact values sitting in this site's own markup, because there is an easter egg on the home page built from this same pair of primitives: <a href="/">click the wordmark</a> and the whole page melts.</p>
-
+<p><code>xChannelSelector="R"</code> means <em>take the horizontal shove from the red channel of the noise</em>; green drives the vertical. <code>baseFrequency</code> sets how fine the cloud is, and <code>scale</code> is the furthest a pixel may travel.&nbsp;</p>
+<p>[[figure:filter-melt]]</p>
+<p>Those two defaults &mdash; <code>baseFrequency="0.1"</code> and <code>scale="13.5"</code> &mdash; are not illustrative numbers. They are the exact values sitting in this site's own markup, because there is an easter egg on the home page built from this same pair of primitives: <a href="https://pflaumax.dev/">click the wordmark</a> and the whole page melts.</p>
 <h2>The one already running under this page</h2>
-<p>This is not a hypothetical. The paper texture you are looking at right now &mdash; the very slight tooth on the background of this site &mdash; is <code>feTurbulence</code>, generated in the stylesheet as a data URI, with no image file involved and nothing to download.</p>
+<p>This is not a hypothetical. The paper texture you are looking at right now, the very slight tooth on the background of this site, is <code>feTurbulence</code>, generated in the stylesheet as a data URI, with no image file involved and nothing to download.</p>
 <p>Because it is generated rather than tiled from a bitmap, it never seams and it costs about 400 bytes. <code>stitchTiles="stitch"</code> is what keeps the edges from showing when the field repeats.</p>
-[[figure:filter-grain]]
-<p>The part that took longest to get right was not the filter, it was the arithmetic around it. The grain is blended into the background &mdash; <code>multiply</code> on the light theme, <code>screen</code> on the dark one &mdash; and those two are not symmetrical. Multiply only ever darkens, so it tolerates a strong alpha. Screen <em>lifts</em> the whole surface, so the same strength that looks like paper in daylight washed the warm ink-brown out to a flat grey in the dark.</p>
+<p>[[figure:filter-grain]]</p>
+<p>The part that took longest to get right was not the filter, it was the arithmetic around it. The grain is blended into the background, <code>multiply</code> on the light theme, <code>screen</code> on the dark one, and those two are not symmetrical. Multiply only ever darkens, so it tolerates a strong alpha. Screen <em>lifts</em> the whole surface, so the same strength that looks like paper in daylight washed the warm ink-brown out to a flat grey in the dark.</p>
 <p>Which means the strength dial and the background colour cannot be tuned independently. Screen raises the mean by roughly <code>slope &times; (255 &minus; bg)</code>, so turning the noise down also turns the <em>page</em> down. Both themes here are held at the same measured grain &sigma;, on purpose: it should read as one sheet of paper lit two ways, and a page that is grainier in the dark reads as two sheets.</p>
 <div class="post-note"><strong>Change the slope and the base together or the whole page shifts.</strong> That sentence is a comment in this site's stylesheet, written after finding out the hard way.</div>
-
 <h2>The rest of the box</h2>
-<p>There are around twenty of these primitives. Here are four more worth knowing, each running live &mdash; the pipeline printed above every specimen is the real chain it uses.</p>
-
-<h3>Gooey &mdash; the famous one</h3>
+<p>There are around twenty of these primitives. Here are four more worth knowing, each running live, the pipeline printed above every specimen is the real chain it uses.</p>
+<h3>Gooey, the famous one</h3>
 <p>Blur the shapes heavily, then take the blurred alpha channel and crush its contrast so hard that anything faint snaps to nothing and anything half-there snaps to solid. Two shapes drifting together have overlapping blur haloes, the crush fuses them, and you get surface tension out of arithmetic. There is no physics here at all.</p>
-[[figure:filter-gooey]]
-
-
+<p>[[figure:filter-gooey]]</p>
 <h3>Chromatic aberration</h3>
-<p>Split the image into red, green and blue channels, slide two of them a few pixels apart, and screen them back together. Real lenses do this at the edges of the frame because glass bends colours by different amounts &mdash; which is why a fringe of red and cyan reads instantly as <em>lens</em>, or as a signal going wrong.</p>
-[[figure:filter-chroma]]
-
+<p>Split the image into red, green and blue channels, slide two of them a few pixels apart, and screen them back together. Real lenses do this at the edges of the frame because glass bends colours by different amounts, which is why a fringe of red and cyan reads instantly as <em>lens</em>, or as a signal going wrong.</p>
+<p>[[figure:filter-chroma]]</p>
 <h3>Duotone</h3>
-<p>First flatten the image to pure luminance, then re-map that single grey ramp onto two colours &mdash; darks to one, lights to the other. It is the treatment magazines use to make a page of mismatched photographs look like one commissioned set, and here it costs one filter and no second file.</p>
-[[figure:filter-duotone]]
-
+<p>First flatten the image to pure luminance, then re-map that single grey ramp onto two colours, darks to one, lights to the other. It is the treatment magazines use to make a page of mismatched photographs look like one commissioned set, and here it costs one filter and no second file.</p>
+<p>[[figure:filter-duotone]]</p>
 <h3>Sticker outline</h3>
-<p><code>feMorphology</code> fattens or erodes a shape's alpha. Dilate the silhouette, flood the fattened copy with a colour, and stack the original back on top &mdash; an outline that follows the actual glyph shapes, which <code>outline</code> and <code>border</code> cannot do because they only ever draw a rectangle.</p>
-[[figure:filter-sticker]]
-
+<p><code>feMorphology</code> fattens or erodes a shape's alpha. Dilate the silhouette, flood the fattened copy with a colour, and stack the original back on top, an outline that follows the actual glyph shapes, which <code>outline</code> and <code>border</code> cannot do because they only ever draw a rectangle.</p>
+<p>[[figure:filter-sticker]]</p>
 <h2>What it costs</h2>
 <p>Filters are cheap in bytes and occasionally expensive in ways the tutorials skip. These four are the ones that actually bite.</p>
 <dl class="post-costs">
@@ -83,12 +63,10 @@
   <dt>Static vs live</dt>
   <dd>A static filter is rasterised once and then costs nothing. Animate a parameter and the browser regenerates the whole field every frame &mdash; full-page Perlin noise at 60fps is a completely different bill, and it is where filters got their bad reputation.</dd>
 </dl>
-<p>Support is universal in current browsers, with one historical wrinkle worth knowing: filters began as an SVG feature that applied to SVG. Aiming one at ordinary HTML through <code>filter: url(#id)</code> came later, with the Filter Effects spec &mdash; and that is the part that makes everything on this page possible.</p>
-
+<p>Support is universal in current browsers, with one historical wrinkle worth knowing: filters began as an SVG feature that applied to SVG. Aiming one at ordinary HTML through <code>filter: url(#id)</code> came later, with the Filter Effects spec, and that is the part that makes everything on this page possible.</p>
 <h2>Worth stealing</h2>
 <p>Grain earns its place on a text site: applied once and left on, it gives a flat background a material. That is the one I actually shipped and kept.</p>
-<p>Duotone is the one I shipped and then took back out, which is the more useful story. Applied to every screenshot in a post it does exactly what it promises &mdash; a pile of mismatched images starts looking like one commissioned set. The problem is what the images are <em>for</em>. One caption on this site reads &ldquo;VS Code Dracula theme with Monaspace Neon font&rdquo;, and a duotone destroys precisely the thing the caption is pointing at. Revealing the original on hover did not rescue it either: a tinted image carries no affordance saying <em>hover me</em>, and a touch screen has no hover at all, so phones were being shown a different site from laptops. What replaced it was much smaller &mdash; <code>sepia(.18) saturate(.92) brightness(.98)</code>, enough to seat a screenshot's white UI chrome into a cream page without touching a pixel of its information.</p>
+<p>Duotone is the one I shipped and then took back out, which is the more useful story. Applied to every screenshot in a post it does exactly what it promises, a pile of mismatched images starts looking like one commissioned set. The problem is what the images are <em>for</em>. One caption on this site reads &ldquo;VS Code Dracula theme with Monaspace Neon font&rdquo;, and a duotone destroys precisely the thing the caption is pointing at. Revealing the original on hover did not rescue it either: a tinted image carries no affordance saying <em>hover me</em>, and a touch screen has no hover at all, so phones were being shown a different site from laptops. What replaced it was much smaller, <code>sepia(.18) saturate(.92) brightness(.98)</code>, enough to seat a screenshot's white UI chrome into a cream page without touching a pixel of its information.</p>
 <div class="post-note"><strong>The rule that came out of it: reach for these on decoration, not on evidence.</strong></div>
 <p>The melt is an easter egg, and easter eggs should stay rare enough to be a surprise. But it is worth knowing that the same two primitives which liquefy a page will, at <code>scale="2"</code>, quietly make it look drawn by hand.</p>
-
-<p class="post-colophon">Every effect on this page is live &mdash; inline SVG, no images, no libraries, nothing loaded from anywhere. Perlin noise: Ken Perlin, 1983; SIGGRAPH &ldquo;An Image Synthesizer&rdquo;, 1985; Academy Award for Technical Achievement, 1997.</p>
+<p class="post-colophon">Every effect on this page is live, inline SVG, no images, no libraries, nothing loaded from anywhere. Perlin noise: Ken Perlin, 1983; SIGGRAPH &ldquo;An Image Synthesizer&rdquo;, 1985; Academy Award for Technical Achievement, 1997.</p>
