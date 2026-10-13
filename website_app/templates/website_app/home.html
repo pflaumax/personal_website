@@ -82,9 +82,9 @@
           <h4 class="latest-title">
             <a href="{{ project.url }}" target="_blank" rel="noopener noreferrer">{{ project.title }}</a>
           </h4>
-          {% comment %}First four: the full stack belongs on /projects/. Keep an
+          {% comment %}First three: the full stack belongs on /projects/. Keep an
           eye on line wrap if new stacks push the row onto two lines.{% endcomment %}
-          <span class="latest-stack">{{ project.stack|slice:":4"|join:" · " }}</span>
+          <span class="latest-stack">{{ project.stack|slice:":3"|join:" · " }}</span>
         </article>
         {% endfor %}
       </div>

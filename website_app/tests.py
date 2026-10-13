@@ -626,6 +626,18 @@ class FeedTests(TestCase):
         self.assertNotIn("&amp;nbsp;", body)
         self.assertIn("Body with a non-breaking space and markup.", body)
 
+    def test_channel_carries_the_site_icon_as_an_absolute_image(self):
+        body = self.client.get(reverse("website_app:feed")).content.decode()
+
+        self.assertRegex(
+            body,
+            r"<image><url>http://testserver/static/website_app/images/"
+            r"favicon[^<]*\.ico</url><title>Max Pflaum</title>"
+            r"<link>http://testserver/blog/</link></image>",
+        )
+        # <image> belongs to the channel, ahead of the first <item>.
+        self.assertLess(body.index("<image>"), body.index("<item>"))
+
     def test_get_absolute_url_points_at_the_post(self):
         self.assertEqual(
             self.post.get_absolute_url(),
