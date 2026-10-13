@@ -775,6 +775,32 @@ class FigureTokenTests(TestCase):
         self.assertIn("<p>before</p>", rendered)
         self.assertIn("<p>after</p>", rendered)
 
+    def test_a_token_alone_in_a_paragraph_loses_the_paragraph(self):
+        """
+        TinyMCE saves a token on its own line as <p>[[figure:x]]</p>. Left
+        wrapped, the figure would sit inside a paragraph, which the browser
+        repairs into an empty <p> after it.
+        """
+        rendered = figures(
+            f"<p>before</p>\n<p>[[figure:{self.FIGURE}]]</p>\n<p>after</p>"
+        )
+
+        self.assertNotIn("<p><figure", rendered)
+        self.assertNotIn("</figure>\n</p>", rendered)
+        self.assertEqual(rendered.count("<p>"), 2)
+
+    def test_a_token_inside_a_sentence_keeps_its_paragraph(self):
+        rendered = figures(f"<p>see [[figure:{self.FIGURE}]] here</p>")
+
+        self.assertTrue(rendered.startswith("<p>see "))
+        self.assertTrue(rendered.endswith(" here</p>"))
+
+    def test_an_unknown_figure_in_a_paragraph_keeps_the_paragraph(self):
+        with self.assertLogs("website_app.figures", "WARNING"):
+            rendered = figures("<p>[[figure:no-such-figure]]</p>")
+
+        self.assertEqual(rendered, "<p>[[figure:no-such-figure]]</p>")
+
     def test_the_result_is_marked_safe_so_the_body_is_not_escaped(self):
         rendered = figures("<p>prose &amp; markup</p>")
 
