@@ -1,0 +1,23 @@
+{% comment %}
+Gooey, from /blog/noise-and-displacement/: blur three dots, then crush the
+blurred alpha so the overlapping haloes fuse. The toggle slides the dots
+together; the fusing shows while they travel and as a single shape at the end.
+{% endcomment %}
+<svg class="fig-defs" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+  <filter id="fig-gooey">
+    <feGaussianBlur in="SourceGraphic" stdDeviation="10" result="soft"/>
+    <feColorMatrix in="soft" type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 24 -11"/>
+  </filter>
+</svg>
+<figure class="fig">
+  <div class="fig-head">
+    <span class="fig-label"><b>feGaussianBlur</b> &rarr; <b>feColorMatrix</b></span>
+    <button class="fig-toggle" type="button" data-fig-toggle="fig-blobs" data-fig-class="fig-merged" aria-pressed="false">Bring together</button>
+  </div>
+  <div class="fig-stage">
+    <div class="fig-blobs" id="fig-blobs">
+      <span class="fig-blob"></span><span class="fig-blob"></span><span class="fig-blob"></span>
+    </div>
+  </div>
+  <figcaption class="fig-foot">The whole trick is the last row of the matrix: <code>0 0 0 24 -11</code> multiplies alpha by 24 and subtracts 11. Everything soft becomes hard.</figcaption>
+</figure>

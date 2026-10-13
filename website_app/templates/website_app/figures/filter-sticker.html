@@ -1,0 +1,21 @@
+{% comment %}
+Sticker outline, from /blog/noise-and-displacement/: dilate the alpha, flood
+the fattened copy, put the original back on top. The outline green is a
+literal, like the nixie green: it is the sticker's colour, not the theme's.
+{% endcomment %}
+<svg class="fig-defs" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+  <filter id="fig-sticker">
+    <feMorphology in="SourceAlpha" operator="dilate" radius="3.5" result="fat"/>
+    <feFlood flood-color="#3fbf6f" result="ink"/>
+    <feComposite in="ink" in2="fat" operator="in" result="ring"/>
+    <feMerge><feMergeNode in="ring"/><feMergeNode in="SourceGraphic"/></feMerge>
+  </filter>
+</svg>
+<figure class="fig">
+  <div class="fig-head">
+    <span class="fig-label"><b>feMorphology</b> &rarr; <b>feFlood</b> &rarr; <b>feComposite</b> &rarr; <b>feMerge</b></span>
+    <button class="fig-toggle" type="button" data-fig-toggle="fig-sticker-stage" data-fig-class="fig-on" aria-pressed="false">Cut it out</button>
+  </div>
+  <div class="fig-stage"><div class="fig-word fig-sticker" id="fig-sticker-stage">STICKER</div></div>
+  <figcaption class="fig-foot">Works on text, icons and transparent images alike &mdash; anything with an alpha channel.</figcaption>
+</figure>

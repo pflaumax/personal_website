@@ -1,0 +1,25 @@
+{% comment %}
+Chromatic aberration, from /blog/noise-and-displacement/: red and blue pulled
+out, offset in opposite directions, screened back over green. Screen only
+recombines on a dark ground, so the specimen carries its own instead of
+following the theme.
+{% endcomment %}
+<svg class="fig-defs" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+  <filter id="fig-chroma">
+    <feOffset in="SourceGraphic" dx="-3.5" dy="0" result="l"/>
+    <feColorMatrix in="l" type="matrix" values="1 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0" result="red"/>
+    <feOffset in="SourceGraphic" dx="3.5" dy="0" result="r"/>
+    <feColorMatrix in="r" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 1 0 0  0 0 0 1 0" result="blue"/>
+    <feColorMatrix in="SourceGraphic" type="matrix" values="0 0 0 0 0  0 1 0 0 0  0 0 0 0 0  0 0 0 1 0" result="green"/>
+    <feBlend in="red" in2="green" mode="screen" result="rg"/>
+    <feBlend in="rg" in2="blue" mode="screen"/>
+  </filter>
+</svg>
+<figure class="fig">
+  <div class="fig-head">
+    <span class="fig-label"><b>feOffset</b> &rarr; <b>feColorMatrix</b> &rarr; <b>feBlend</b> <span class="fig-label-aside">&times;3</span></span>
+    <button class="fig-toggle" type="button" data-fig-toggle="fig-crt" data-fig-class="fig-on" aria-pressed="false">Break the signal</button>
+  </div>
+  <div class="fig-stage"><div class="fig-crt" id="fig-crt">NO SIGNAL</div></div>
+  <figcaption class="fig-foot">Screen blending only recombines correctly on a dark ground, which is why this specimen brings its own.</figcaption>
+</figure>

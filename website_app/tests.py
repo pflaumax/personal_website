@@ -16,7 +16,7 @@ from tinymce.widgets import TinyMCE
 
 from . import views
 from .admin import PostAdmin
-from .figures import fingerprint, strip_figures
+from .figures import FIGURE_TOKEN, fingerprint, strip_figures
 from .media_urls import LEGACY_S3_MEDIA_PREFIX, rewrite_content, rewrite_posts
 from .models import MediaFile, Post
 from .post_text import plain_text
@@ -775,6 +775,32 @@ class FigureTokenTests(TestCase):
         self.assertIn("<p>before</p>", rendered)
         self.assertIn("<p>after</p>", rendered)
 
+    def test_a_token_alone_in_a_paragraph_loses_the_paragraph(self):
+        """
+        TinyMCE saves a token on its own line as <p>[[figure:x]]</p>. Left
+        wrapped, the figure would sit inside a paragraph, which the browser
+        repairs into an empty <p> after it.
+        """
+        rendered = figures(
+            f"<p>before</p>\n<p>[[figure:{self.FIGURE}]]</p>\n<p>after</p>"
+        )
+
+        self.assertNotIn("<p><figure", rendered)
+        self.assertNotIn("</figure>\n</p>", rendered)
+        self.assertEqual(rendered.count("<p>"), 2)
+
+    def test_a_token_inside_a_sentence_keeps_its_paragraph(self):
+        rendered = figures(f"<p>see [[figure:{self.FIGURE}]] here</p>")
+
+        self.assertTrue(rendered.startswith("<p>see "))
+        self.assertTrue(rendered.endswith(" here</p>"))
+
+    def test_an_unknown_figure_in_a_paragraph_keeps_the_paragraph(self):
+        with self.assertLogs("website_app.figures", "WARNING"):
+            rendered = figures("<p>[[figure:no-such-figure]]</p>")
+
+        self.assertEqual(rendered, "<p>[[figure:no-such-figure]]</p>")
+
     def test_the_result_is_marked_safe_so_the_body_is_not_escaped(self):
         rendered = figures("<p>prose &amp; markup</p>")
 
@@ -855,6 +881,38 @@ class FigureTokenTests(TestCase):
                 self.assertNotIn("[[figure:", rendered)
                 self.assertIn("<figure", rendered)
                 self.assertIn("<figcaption", rendered)
+
+    def test_post_sources_name_only_figures_that_exist(self):
+        """
+        A typo in a token only shows up on the live page, so check every
+        tracked post source against the partials on disk.
+        """
+        root = Path(__file__).resolve().parent.parent / "media_for_blogposts"
+        figure_dir = Path(__file__).parent / "templates" / "website_app" / "figures"
+        known = {path.stem for path in figure_dir.glob("*.html")}
+
+        for source in sorted(root.glob("*/post.html")):
+            body = source.read_text(encoding="utf-8")
+            for name in FIGURE_TOKEN.findall(body):
+                with self.subTest(post=source.parent.name, figure=name):
+                    self.assertIn(name, known)
+
+    def test_the_filters_post_is_editable_in_the_rich_text_editor(self):
+        """
+        post5 used to carry its own stylesheet, filters and script and so had
+        to be edited as raw source. Its demos are figures now; if raw markup
+        creeps back, the admin silently goes back to the source textarea.
+        """
+        source = (
+            Path(__file__).resolve().parent.parent
+            / "media_for_blogposts"
+            / "post5_filters"
+            / "post.html"
+        )
+        body = source.read_text(encoding="utf-8")
+
+        self.assertFalse(Post.body_needs_raw_html(body))
+        self.assertEqual(len(FIGURE_TOKEN.findall(body)), 6)
 
     def test_no_figure_needs_javascript(self):
         """

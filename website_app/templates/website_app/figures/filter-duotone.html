@@ -1,0 +1,23 @@
+{% comment %}
+Duotone, from /blog/noise-and-displacement/: flatten to luminance, then map the
+grey ramp onto two colours. The "photo" is a CSS gradient so the figure needs
+no image file.
+{% endcomment %}
+<svg class="fig-defs" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+  <filter id="fig-duotone" color-interpolation-filters="sRGB">
+    <feColorMatrix type="matrix" values="0.2126 0.7152 0.0722 0 0  0.2126 0.7152 0.0722 0 0  0.2126 0.7152 0.0722 0 0  0 0 0 1 0"/>
+    <feComponentTransfer>
+      <feFuncR type="table" tableValues="0.12 0.70"/>
+      <feFuncG type="table" tableValues="0.32 0.93"/>
+      <feFuncB type="table" tableValues="0.20 0.79"/>
+    </feComponentTransfer>
+  </filter>
+</svg>
+<figure class="fig">
+  <div class="fig-head">
+    <span class="fig-label"><b>feColorMatrix</b> <span class="fig-label-aside">(luminance)</span> &rarr; <b>feComponentTransfer</b></span>
+    <button class="fig-toggle" type="button" data-fig-toggle="fig-photo" data-fig-class="fig-on" aria-pressed="false">Recolour</button>
+  </div>
+  <div class="fig-stage"><div class="fig-photo" id="fig-photo" role="img" aria-label="A synthetic landscape drawn in CSS"></div></div>
+  <figcaption class="fig-foot"><code>tableValues="0.12 0.70"</code> per channel: the first number is where black lands, the second is where white lands.</figcaption>
+</figure>

@@ -32,6 +32,14 @@ logger = logging.getLogger(__name__)
 # outside the figures directory.
 FIGURE_TOKEN = re.compile(r"\[\[figure:([a-z0-9-]+)\]\]")
 
+# What expand_figures replaces: a token alone in its own paragraph, or a bare
+# one. TinyMCE wraps a token on its own line in <p> on every save, and a figure
+# inside a paragraph is invalid HTML — the browser closes the <p> at the
+# <figure> and turns the stray </p> into an empty paragraph of its own.
+_FIGURE_SLOT = re.compile(
+    r"<p>\s*" + FIGURE_TOKEN.pattern + r"\s*</p>|" + FIGURE_TOKEN.pattern
+)
+
 FIGURE_TEMPLATE = "website_app/figures/{name}.html"
 
 
@@ -46,14 +54,14 @@ def expand_figures(content):
         return ""
 
     def expand(match):
-        name = match.group(1)
+        name = match.group(1) or match.group(2)
         try:
             return render_to_string(FIGURE_TEMPLATE.format(name=name))
         except TemplateDoesNotExist:
             logger.warning("Unknown figure %r left unexpanded in a post body", name)
             return match.group(0)
 
-    return FIGURE_TOKEN.sub(expand, content)
+    return _FIGURE_SLOT.sub(expand, content)
 
 
 def strip_figures(content):
