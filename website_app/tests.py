@@ -16,7 +16,7 @@ from tinymce.widgets import TinyMCE
 
 from . import views
 from .admin import PostAdmin
-from .figures import fingerprint, strip_figures
+from .figures import FIGURE_TOKEN, fingerprint, strip_figures
 from .media_urls import LEGACY_S3_MEDIA_PREFIX, rewrite_content, rewrite_posts
 from .models import MediaFile, Post
 from .post_text import plain_text
@@ -881,6 +881,38 @@ class FigureTokenTests(TestCase):
                 self.assertNotIn("[[figure:", rendered)
                 self.assertIn("<figure", rendered)
                 self.assertIn("<figcaption", rendered)
+
+    def test_post_sources_name_only_figures_that_exist(self):
+        """
+        A typo in a token only shows up on the live page, so check every
+        tracked post source against the partials on disk.
+        """
+        root = Path(__file__).resolve().parent.parent / "media_for_blogposts"
+        figure_dir = Path(__file__).parent / "templates" / "website_app" / "figures"
+        known = {path.stem for path in figure_dir.glob("*.html")}
+
+        for source in sorted(root.glob("*/post.html")):
+            body = source.read_text(encoding="utf-8")
+            for name in FIGURE_TOKEN.findall(body):
+                with self.subTest(post=source.parent.name, figure=name):
+                    self.assertIn(name, known)
+
+    def test_the_filters_post_is_editable_in_the_rich_text_editor(self):
+        """
+        post5 used to carry its own stylesheet, filters and script and so had
+        to be edited as raw source. Its demos are figures now; if raw markup
+        creeps back, the admin silently goes back to the source textarea.
+        """
+        source = (
+            Path(__file__).resolve().parent.parent
+            / "media_for_blogposts"
+            / "post5_filters"
+            / "post.html"
+        )
+        body = source.read_text(encoding="utf-8")
+
+        self.assertFalse(Post.body_needs_raw_html(body))
+        self.assertEqual(len(FIGURE_TOKEN.findall(body)), 6)
 
     def test_no_figure_needs_javascript(self):
         """

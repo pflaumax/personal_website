@@ -1,0 +1,37 @@
+{% comment %}
+The melt bench from /blog/noise-and-displacement/: feTurbulence feeding
+feDisplacementMap, with a dial for each of the two numbers that matter.
+
+The defaults are the values in the home page's own melt filter (base.html), and
+the post says so in as many words. Change one and change the other, or the
+sentence under this figure stops being true.
+
+The dials write straight onto the filter primitives through figures.js; with
+JavaScript off the figure still shows the filter at its defaults.
+{% endcomment %}
+<svg class="fig-defs" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+  <filter id="fig-melt">
+    <feTurbulence id="fig-melt-noise" type="fractalNoise" baseFrequency="0.1" numOctaves="1" seed="4"/>
+    <feDisplacementMap id="fig-melt-map" in="SourceGraphic" scale="13.5" xChannelSelector="R" yChannelSelector="G"/>
+  </filter>
+</svg>
+<figure class="fig">
+  <div class="fig-head">
+    <span class="fig-label"><b>feTurbulence</b> &rarr; <b>feDisplacementMap</b></span>
+    <button class="fig-toggle" type="button" data-fig-toggle="fig-melt-stage" data-fig-class="fig-melted" aria-pressed="false">Apply filter</button>
+  </div>
+  <div class="fig-stage"><div class="fig-word" id="fig-melt-stage">Ink on paper</div></div>
+  <div class="fig-dials">
+    <div class="fig-dial">
+      <label for="fig-melt-freq">baseFrequency</label>
+      <input type="range" id="fig-melt-freq" min="1" max="40" value="10">
+      <output id="fig-melt-freq-out" for="fig-melt-freq">0.10</output>
+    </div>
+    <div class="fig-dial">
+      <label for="fig-melt-scale">scale</label>
+      <input type="range" id="fig-melt-scale" min="0" max="40" step="0.5" value="13.5">
+      <output id="fig-melt-scale-out" for="fig-melt-scale">13.5</output>
+    </div>
+  </div>
+  <figcaption class="fig-foot">Low frequency, high scale &mdash; slow syrupy drift. High frequency &mdash; a fine scribble. <code>scale</code> at 0 is the off switch.</figcaption>
+</figure>

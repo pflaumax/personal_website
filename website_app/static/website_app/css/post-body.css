@@ -13,11 +13,12 @@
  *
  * Everything consumes the site's own tokens (--rule, --surface-2, --accent,
  * --muted …), so both themes follow the page and this file owns no palette —
- * with one documented exception, --fig-nixie below.
+ * except for props that must look the same in both themes: --fig-nixie, and
+ * the CRT and landscape specimens of the filter figures, each commented.
  *
- * Figure chrome is scoped under .fig, not the older .fx used by posts that
- * still carry an inline <style> block, so the two coexist while figures are
- * extracted one at a time.
+ * Figure chrome is scoped under .fig. The older .fx prefix belonged to the
+ * inline <style> block of /blog/noise-and-displacement/, whose demos are now
+ * the filter-*.html partials below.
  */
 
 /* --- prose furniture ---------------------------------------------------- */
@@ -211,7 +212,7 @@
   white-space: pre;
 }
 
-/* The one hard-coded colour in this file, and deliberately so: the Divergence
+/* A hard-coded colour, and deliberately so: the Divergence
    Meter is a prop, not a piece of interface. Nixie green does not belong to the
    site's palette and must not follow the theme — a tube glows the colour it
    glows in both light and dark. */
@@ -305,5 +306,173 @@
 
 .post-content .fig-nixie-caption {
   font-size: 0.78em;
+  color: var(--muted);
+}
+
+/* --- filter figures ------------------------------------------------------ *
+ *
+ * The SVG filter demos from /blog/noise-and-displacement/, the filter-*.html
+ * partials. Each one carries its own filter in a .fig-defs block, and the
+ * toggles and dials are wired by js/figures.js.
+ */
+
+/* Hidden with visibility, not display: display:none can stop a filter
+   reference resolving. Absolutely placed so the block takes no room in the
+   prose flow. */
+.post-content .fig-defs {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  visibility: hidden;
+}
+
+.post-content .fig-label-aside { opacity: 0.6; }
+
+.post-content .fig-toggle {
+  font: inherit;
+  font-size: 0.95em;
+  padding: 0.3rem 0.7rem;
+  border: 1px solid var(--accent);
+  background: transparent;
+  color: var(--accent);
+  cursor: pointer;
+}
+
+.post-content .fig-toggle:hover { background: var(--mark); }
+
+.post-content .fig-toggle[aria-pressed="true"] {
+  background: var(--accent);
+  color: var(--bg);
+}
+
+.post-content .fig-dials {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding: 0.6rem 0.8rem;
+  border-top: 1px solid var(--rule-soft);
+  font-size: 0.78em;
+}
+
+.post-content .fig-dial {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.post-content .fig-dial input[type="range"] {
+  width: 110px;
+  accent-color: var(--accent);
+}
+
+.post-content .fig-dial output {
+  min-width: 2.6em;
+  color: var(--accent);
+}
+
+/* A display word, unlike .fig-specimen above, which is monospace and keeps
+   its whitespace for glyph comparisons. */
+.post-content .fig-word {
+  font-size: 2.1rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  line-height: 1.15;
+  color: var(--text);
+  text-align: center;
+}
+
+.post-content .fig-melted { filter: url(#fig-melt); }
+
+.post-content .fig-grain-sheet {
+  position: relative;
+  max-width: 36ch;
+  padding: 1.1rem;
+  border: 1px solid var(--rule);
+  background: var(--px-ground, var(--bg));
+}
+
+.post-content .fig-grain-sheet p {
+  position: relative;
+  margin: 0;
+}
+
+.post-content .fig-grain-layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  pointer-events: none;
+  mix-blend-mode: var(--grain-blend, multiply);
+}
+
+.post-content .fig-grain-sheet.fig-on .fig-grain-layer { opacity: 1; }
+
+.post-content .fig-blobs {
+  display: flex;
+  gap: 26px;
+  filter: url(#fig-gooey);
+}
+
+.post-content .fig-blob {
+  display: block;
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  background: var(--accent);
+  transition: margin 0.6s ease;
+}
+
+.post-content .fig-blobs.fig-merged .fig-blob { margin: 0 -22px; }
+
+/* Hard-coded on purpose: screen blending needs a dark ground in both themes. */
+.post-content .fig-crt {
+  padding: 1.4rem 2rem;
+  background: #14140f;
+  color: #d8d2be;
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+
+.post-content .fig-crt.fig-on { filter: url(#fig-chroma); }
+
+/* A landscape drawn in CSS so the figure needs no image file. Its colours are
+   the input to the duotone, so they must not follow the theme either. */
+.post-content .fig-photo {
+  width: 230px;
+  height: 130px;
+  background:
+    radial-gradient(circle at 74% 26%, #f6d98a 0 16px, transparent 17px),
+    linear-gradient(#8fc4e8 0 46%, #7fae76 46% 100%);
+}
+
+.post-content .fig-photo.fig-on { filter: url(#fig-duotone); }
+
+.post-content .fig-sticker.fig-on { filter: url(#fig-sticker); }
+
+@media (prefers-reduced-motion: reduce) {
+  .post-content .fig-blob { transition: none; }
+}
+
+/* --- cost list ------------------------------------------------------------ *
+ *
+ * A plain dl, with no wrapper div per pair: the rich-text editor's schema
+ * allows only dt and dd inside dl and would unwrap or move anything else. So
+ * the rule that separates the entries sits on the dt instead of on a wrapper.
+ */
+
+.post-content .post-costs { margin: 1.2rem 0; }
+
+.post-content .post-costs dt {
+  margin-bottom: 0.25rem;
+  padding-top: 0.8rem;
+  border-top: 1px solid var(--rule-soft);
+  font-weight: 700;
+}
+
+.post-content .post-costs dd {
+  margin: 0;
+  padding-bottom: 0.8rem;
   color: var(--muted);
 }
