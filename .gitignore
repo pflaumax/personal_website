@@ -17,6 +17,8 @@ ENV/
 
 # Django-related files
 *.log
+# Rotated by logrotate on the Pi: gunicorn_*.log.1, gunicorn_*.log.2.gz, ...
+*.log.*
 local_settings.py
 db.sqlite3
 db.sqlite3-journal
