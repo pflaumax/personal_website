@@ -8,6 +8,7 @@ from django.contrib.admin.sites import site
 from django.contrib.auth.models import User
 from django.core.management import call_command
 from django.db import OperationalError
+from django.templatetags.static import static
 from django.test import RequestFactory, TestCase
 from django.urls import reverse
 from django.utils import timezone
@@ -352,6 +353,21 @@ class PageMetadataTests(TestCase):
         self.assertIn('content="summary_large_image"', body)
         self.assertIn('property="og:image:width" content="1200"', body)
         self.assertNotIn('name="twitter:card" content="summary"', body)
+
+    def test_font_preload_matches_the_request_the_stylesheet_makes(self):
+        """
+        A preload only helps if the browser can reuse it: same hashed URL as the
+        one style.css names, and crossorigin, because fonts load in CORS mode.
+        Miss either and the font is downloaded twice instead of once early.
+        """
+        body = self.client.get(reverse("website_app:index")).content.decode()
+        font = static("website_app/fonts/monaspace/MonaspaceNeonVar-subset.woff2")
+
+        self.assertIn(
+            f'<link rel="preload" href="{font}" as="font" type="font/woff2" '
+            "crossorigin>",
+            body,
+        )
 
     def test_error_pages_are_noindex_but_real_pages_are_not(self):
         missing = self.client.get("/definitely-not-a-page/").content.decode()

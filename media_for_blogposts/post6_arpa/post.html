@@ -27,7 +27,7 @@
      ===================================================================== -->
 <p class="post-lede">I put a website on&nbsp;<code>.arpa</code>, the top level domain reserved for critical internet infrastructure. Not a subdomain. A real address in the zone, resolving through DNS and serving a real page.</p>
 <p class="post-lede"><strong><span style="text-decoration: underline;">See it live:</span> </strong><a title="cern.4.f.4.0.5.1.f.1.0.7.4.0.1.0.0.2.ip6.arpa" href="http://cern.4.f.4.0.5.1.f.1.0.7.4.0.1.0.0.2.ip6.arpa/" target="_blank" rel="noopener">cern.4.f.4.0.5.1.f.1.0.7.4.0.1.0.0.2.ip6.arpa</a></p>
-<p class="post-lede"><img src="https://pflaumax.dev/media/media_files/Screenshot_2026-09-06_at_15.15.50.png" alt="cern_web" width="1574" height="1594"></p>
+<p class="post-lede"><img src="https://pflaumax.dev/media/media_files/cern_web.webp" alt="cern_web" width="1440" height="1458"></p>
 <p><em>The DNS part took twenty minutes. Everything after that took much longer. None of the hard parts were DNS.</em></p>
 <h2>The zone nobody registers</h2>
 <p>You cannot buy <code>mysite.arpa</code>. There is no registrar for it. The zone exists for machines. <code>in-addr.arpa</code> and <code>ip6.arpa</code> handle reverse DNS, mapping an IP address back to a name. Reverse DNS is delegated. Control an IP block and you control its matching slice of <code>ip6.arpa</code>.</p>
@@ -83,7 +83,7 @@
      the right." -->
 <h2>Adding a clock made me delete a whole section</h2>
 <p><strong><a href="https://steins-gate.fandom.com/wiki/Divergence_Meter" target="_blank" rel="noopener"><em>Steins;Gate</em></a> </strong>has a 'Divergence Meter', a nixie tube readout of the worldline's drift, always slightly wrong. I wanted one on the page, live, no images.</p>
-<p><img src="https://pflaumax.dev/media/media_files/SGwebp.webp" alt="div_meter" width="1920" height="1080"></p>
+<p><img src="https://pflaumax.dev/media/media_files/div_meter.webp" alt="div_meter" width="1440" height="810"></p>
 <p>The tubes are <code>&lt;span&gt;</code>s: a <code>repeating-linear-gradient</code> for the glass ribbing, a <code>radial-gradient</code> for the glow, <code>text-shadow</code> for the actual light, all in the palette already on the page. Seven of them, updated once a second, the last digit deliberately randomised, the joke is that a stable reading would be the anomaly.</p>
 <p>[[figure:divergence-meter]]</p>
 <p>Placing it was the real problem. My first version gave the clock its own full width section between the masthead and the status grid. It looked fine, but pushed the whole page down. A site meant to fit on one screen had gained a scroll bar.</p>

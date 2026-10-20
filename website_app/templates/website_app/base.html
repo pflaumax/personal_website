@@ -43,6 +43,12 @@
     <meta name="twitter:description" content="{{ doc_description }}" />
     <meta name="twitter:image" content="{{ site_root }}{% static 'website_app/images/og-image.png' %}" />
 
+    {% comment %}Without this the font is found only once style.css has arrived and
+    been parsed, a third round trip after the HTML and the CSS. Preloading starts
+    it alongside the stylesheet. crossorigin is required even on the same origin:
+    fonts are always fetched in CORS mode, and a preload without it does not match
+    the real request, so the font downloads twice.{% endcomment %}
+    <link rel="preload" href="{% static 'website_app/fonts/monaspace/MonaspaceNeonVar-subset.woff2' %}" as="font" type="font/woff2" crossorigin>
     <link rel="stylesheet" href="{% static 'website_app/css/style.css' %}"/>
     <link rel="icon" type="image/x-icon" href="{% static 'website_app/images/favicon.ico' %}">
     <link rel="alternate" type="application/rss+xml" title="Max Pflaum" href="{% url 'website_app:feed' %}">
