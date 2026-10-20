@@ -1,6 +1,9 @@
+from unittest import mock
+
 from django.contrib.auth.models import User
 from django.core.management import call_command
 from django.core.management.base import CommandError
+from django.db import OperationalError
 from django.http import HttpResponse
 from django.test import RequestFactory, TestCase, override_settings
 from django.urls import reverse
@@ -252,6 +255,23 @@ class PageViewMiddlewareTests(TestCase):
             self._middleware()(self.factory.get("/blog/"))
 
         self.assertEqual(PageView.objects.get(path="/blog/").count, 2)
+
+    def test_database_error_does_not_replace_the_rendered_page(self):
+        """
+        Most pages never touch the database. With Postgres down, the counter
+        write used to raise after the page had rendered and turn it into a 500.
+        """
+        middleware = self._middleware()
+
+        with (
+            mock.patch.object(
+                PageView.objects, "filter", side_effect=OperationalError("down")
+            ),
+            self.assertLogs("stats.middleware", level="WARNING"),
+        ):
+            response = middleware(self.factory.get("/blog/"))
+
+        self.assertEqual(response.status_code, 200)
 
 
 class PageViewMiddlewareIntegrationTests(TestCase):

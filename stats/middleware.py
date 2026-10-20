@@ -1,9 +1,13 @@
+import logging
 from functools import lru_cache
 
 from django.conf import settings
+from django.db import DatabaseError
 from django.db.models import F
 
 from .models import PageView
+
+logger = logging.getLogger(__name__)
 
 # Keep in sync with PageView.path's max_length.
 MAX_TRACKED_PATH_LENGTH = 512
@@ -70,7 +74,14 @@ class PageViewMiddleware:
         response = self.get_response(request)
 
         if self._is_trackable(request, path, response):
-            self._record_page_view(path)
+            # The page has already rendered; a counter must not take it down.
+            # Home, projects, contact and tools never touch the database, yet
+            # with Postgres unreachable this write turned every one of them
+            # into a 500 — a database outage became a whole-site outage.
+            try:
+                self._record_page_view(path)
+            except DatabaseError as exc:
+                logger.warning("Page view for %s not recorded: %s", path, exc)
 
         return response
 
