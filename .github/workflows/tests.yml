@@ -1,0 +1,33 @@
+name: Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      # Dummy values: settings.py refuses to start without them. With no
+      # DATABASE_URL, Django falls back to SQLite.
+      SECRET_KEY: ci-not-secret
+      DJANGO_ADMIN_URL: ci-admin/
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.13" # same as the Pi
+          cache: pip
+          cache-dependency-path: requirements*.txt
+      - run: pip install -r requirements-dev.txt
+      - run: ruff check .
+      - run: ruff format --check .
+      # CompressedManifestStaticFilesStorage needs the manifest collectstatic
+      # writes; without it every template that uses {% static %} fails.
+      - run: python manage.py collectstatic --noinput
+      - run: python manage.py test

@@ -163,6 +163,12 @@ things that break silently rather than loudly: slug generation, the analytics mi
 exclusion rules, `/api/stats/` authorization, the feed's content type and date handling, and
 per-page metadata.
 
+GitHub Actions (`.github/workflows/tests.yml`) runs `ruff check`, `ruff format --check` and the
+suite on every push to `main` and on pull requests, on Python 3.13 like the Pi, against SQLite
+and with dummy `SECRET_KEY` and `DJANGO_ADMIN_URL`. It runs `collectstatic` first: the manifest
+storage fails every `{% static %}` lookup without it, which a local checkout hides because its
+`staticfiles/` already exists.
+
 
 ## License
 
