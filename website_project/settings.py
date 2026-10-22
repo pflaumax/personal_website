@@ -223,6 +223,8 @@ TINYMCE_DEFAULT_CONFIG = {
     "custom_undo_redo_levels": 20,
     "selector": "textarea",
     "theme": "silver",
+    # TinyMCE 7+ (django-tinymce 5) is GPL and warns on every load without it.
+    "license_key": "gpl",
     "plugins": """
         save link image media preview codesample
         table code lists fullscreen insertdatetime nonbreaking
