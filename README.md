@@ -27,7 +27,7 @@ A personal website built with Django, featuring a blog with a rich-text CMS, a t
 
 - **Custom Error Pages** — Styled 400, 403, 404, and 500 error handlers.
 
-- **Healthcheck Endpoint** — `/healthcheck/` returns a JSON `{"status": "OK"}` response, pinged every 10 minutes by a GitHub Actions workflow.
+- **Healthcheck Endpoint** — `/healthcheck/` returns a JSON `{"status": "OK"}` response, polled by `status_checker` on the Pi.
 
 
 ## Tech Stack
@@ -42,8 +42,8 @@ A personal website built with Django, featuring a blog with a rich-text CMS, a t
 | Media       | Local filesystem, served by Nginx                              |
 | Rich Text   | TinyMCE (`django-tinymce`)                                     |
 | Static Files| WhiteNoise (content-hashed, gzip-precompressed)                |
-| CI/CD       | GitHub Actions (healthcheck ping)                               |
-| Hosting     | Self-hosted on Raspberry Pi 4 (Nginx, Gunicorn, systemd)       |
+| CI          | GitHub Actions (tests, Ruff, CodeQL, pip-audit), Dependabot     |
+| Hosting     | Self-hosted on Raspberry Pi 5 (Nginx, Gunicorn, systemd)       |
 
 
 ## Project Structure
@@ -69,11 +69,11 @@ personal_website/
 │   ├── middleware.py     # Request tracking middleware
 │   ├── purge.py          # Shared admin-path purge helper
 │   └── views.py          # JSON stats API (staff-only)
-├── scripts/              # migrate, create superuser, publish_post, backup_db
+├── scripts/              # create superuser, publish_post, backup_db
 ├── media_for_blogposts/  # Post source files (post.html tracked, images not)
 ├── docs/                 # Raspberry Pi setup and deploy guides (phase1–5)
 │   └── scripts/          # Provisioning shell scripts
-├── .github/workflows/    # GitHub Actions (healthcheck ping)
+├── .github/workflows/    # GitHub Actions (tests, security scans)
 ├── requirements.txt      # Production dependencies
 ├── requirements-dev.txt  # + local dev tooling (debug toolbar, shell_plus, ruff)
 ├── pyproject.toml        # Ruff configuration
