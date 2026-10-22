@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib import admin
-from django.utils.html import format_html
+from django.utils.safestring import mark_safe
 
 from .models import MediaFile, Post
 
@@ -42,7 +42,7 @@ class PostAdmin(admin.ModelAdmin):
                     ),
                 }
             )
-            form.base_fields["content"].help_text = format_html(
+            form.base_fields["content"].help_text = mark_safe(
                 "Raw HTML — served verbatim, nothing is sanitised on the way "
                 "out. The rich-text editor is off for this post on purpose: it "
                 "would strip the inline <code>&lt;style&gt;</code>, "
